@@ -409,49 +409,64 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
       <Modal
         animationType="slide"
         onRequestClose={closeScanner}
-        presentationStyle="fullScreen"
+        transparent
         visible={scannerOpen}
       >
-        <View style={styles.scannerModal}>
-          <CameraView
-            style={styles.scannerModalCamera}
-            facing="back"
-            onBarcodeScanned={scannerReady ? handleBarcodeScanned : undefined}
-            barcodeScannerSettings={{
-              barcodeTypes: [
-                "ean13",
-                "ean8",
-                "upc_a",
-                "upc_e",
-                "code128",
-              ],
-            }}
-          />
+        <View style={styles.scannerSheetBackdrop}>
+          <Pressable style={styles.scannerSheetDismissArea} onPress={closeScanner} />
 
-          <View style={styles.scannerModalOverlay} />
+          <View style={styles.scannerSheet}>
+            <View style={styles.scannerSheetHeader}>
+              <View>
+                <Text style={styles.scannerSheetTitle}>
+                  {mode === "sale" ? "Sale Scanner" : "Receive Scanner"}
+                </Text>
+                <Text style={styles.scannerSheetSubtitle}>Keep barcode inside the frame.</Text>
+              </View>
 
-          <Pressable style={styles.scannerModalCloseButton} onPress={closeScanner}>
-            <Text style={styles.scannerModalCloseText}>Close</Text>
-          </Pressable>
+              <Pressable style={styles.scannerSheetCloseButton} onPress={closeScanner}>
+                <Text style={styles.scannerSheetCloseText}>Close</Text>
+              </Pressable>
+            </View>
 
-          <View style={styles.scannerModalFrame}>
-            <View style={styles.scanCornerTopLeft} />
-            <View style={styles.scanCornerTopRight} />
-            <View style={styles.scanCornerBottomLeft} />
-            <View style={styles.scanCornerBottomRight} />
-            <View style={styles.scanLine} />
-          </View>
+            <View style={styles.scannerSheetCameraWrap}>
+              <CameraView
+                style={styles.scannerSheetCamera}
+                facing="back"
+                onBarcodeScanned={scannerReady ? handleBarcodeScanned : undefined}
+                barcodeScannerSettings={{
+                  barcodeTypes: [
+                    "ean13",
+                    "ean8",
+                    "upc_a",
+                    "upc_e",
+                    "code128",
+                  ],
+                }}
+              />
 
-          <View style={styles.scannerModalStatus}>
-            <View
-              style={[
-                styles.statusDot,
-                canScan && !savingStock ? styles.statusDotReady : styles.statusDotBusy,
-              ]}
-            />
-            <Text style={styles.scanStatusText}>
-              {savingStock ? "Saving..." : canScan ? "Ready to scan" : "Processing scan..."}
-            </Text>
+              <View style={styles.scannerModalOverlay} />
+
+              <View style={styles.scannerSheetFrame}>
+                <View style={styles.scanCornerTopLeft} />
+                <View style={styles.scanCornerTopRight} />
+                <View style={styles.scanCornerBottomLeft} />
+                <View style={styles.scanCornerBottomRight} />
+                <View style={styles.scanLine} />
+              </View>
+            </View>
+
+            <View style={styles.scannerSheetStatus}>
+              <View
+                style={[
+                  styles.statusDot,
+                  canScan && !savingStock ? styles.statusDotReady : styles.statusDotBusy,
+                ]}
+              />
+              <Text style={styles.scannerSheetStatusText}>
+                {savingStock ? "Saving..." : canScan ? "Ready to scan" : "Processing scan..."}
+              </Text>
+            </View>
           </View>
         </View>
       </Modal>
@@ -829,13 +844,70 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  scannerModal: {
+  scannerSheetBackdrop: {
     flex: 1,
-    backgroundColor: "#020617",
+    backgroundColor: "rgba(15, 23, 42, 0.38)",
+    justifyContent: "flex-end",
   },
 
-  scannerModalCamera: {
-    ...StyleSheet.absoluteFillObject,
+  scannerSheetDismissArea: {
+    flex: 1,
+  },
+
+  scannerSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 24,
+  },
+
+  scannerSheetHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+
+  scannerSheetTitle: {
+    color: "#0F172A",
+    fontSize: 18,
+    fontWeight: "900",
+  },
+
+  scannerSheetSubtitle: {
+    color: "#64748B",
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 3,
+  },
+
+  scannerSheetCloseButton: {
+    backgroundColor: "#F1F5F9",
+    borderColor: "#CBD5E1",
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+
+  scannerSheetCloseText: {
+    color: "#334155",
+    fontSize: 12,
+    fontWeight: "900",
+  },
+
+  scannerSheetCameraWrap: {
+    height: 310,
+    backgroundColor: "#020617",
+    borderRadius: 18,
+    overflow: "hidden",
+    position: "relative",
+  },
+
+  scannerSheetCamera: {
+    flex: 1,
   },
 
   scannerModalOverlay: {
@@ -843,45 +915,33 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(2, 6, 23, 0.12)",
   },
 
-  scannerModalCloseButton: {
+  scannerSheetFrame: {
     position: "absolute",
-    top: 50,
-    right: 18,
-    zIndex: 8,
-    backgroundColor: "rgba(15, 23, 42, 0.88)",
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-
-  scannerModalCloseText: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "900",
-  },
-
-  scannerModalFrame: {
-    position: "absolute",
-    top: "31%",
+    top: 70,
     left: 34,
     right: 34,
-    height: 180,
+    height: 150,
     borderRadius: 24,
     justifyContent: "center",
     backgroundColor: "rgba(15, 23, 42, 0.08)",
   },
 
-  scannerModalStatus: {
-    position: "absolute",
-    bottom: 54,
+  scannerSheetStatus: {
     alignSelf: "center",
-    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: "rgba(15, 23, 42, 0.88)",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    backgroundColor: "#0F172A",
     borderRadius: 999,
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+
+  scannerSheetStatusText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "900",
   },
 
   camera: {
