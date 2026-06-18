@@ -9,11 +9,11 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
-  Vibration,
 } from "react-native";
-import { useAudioPlayer } from "expo-audio";
-const scanSound = require("../../assets/sound/scanner-beep.mp3");
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { useAuth } from "@/hooks/use-auth";
+import { useScanFeedback } from "@/hooks/use-scan-feedback";
+import { recordSaleLog } from "@/lib/sales-logs";
 import { supabase } from "../../lib/supabase";
 
 type Product = {
@@ -36,6 +36,7 @@ const SCAN_COOLDOWN_MS = 1800;
 
 export default function HomeScreen() {
   const [permission, requestPermission] = useCameraPermissions();
+  const { user } = useAuth();
 
   const [mode, setMode] = useState<Mode>("sale");
   const [canScan, setCanScan] = useState(true);
@@ -54,7 +55,8 @@ export default function HomeScreen() {
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTranslateY = useRef(new Animated.Value(-18)).current;
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const scanPlayer = useAudioPlayer(scanSound);
+  const { playScanFeedback } = useScanFeedback();
+
   const showToast = useCallback(
     (toastMessage: string, type: ToastType = "info") => {
       if (toastTimerRef.current) {
@@ -105,15 +107,6 @@ export default function HomeScreen() {
   );
 
 
-  const playScanSound = useCallback(() => {
-    try {
-      scanPlayer.seekTo(0);
-      scanPlayer.play();
-      Vibration.vibrate(50);
-    } catch (error) {
-      console.log("Scan sound error:", error);
-    }
-  }, [scanPlayer]);
   useEffect(() => {
     return () => {
       if (toastTimerRef.current) {
@@ -159,7 +152,7 @@ export default function HomeScreen() {
           total: product.price * quantity,
         };
       })
-      .filter(Boolean) as Array<Product & { quantity: number; total: number }>;
+      .filter(Boolean) as (Product & { quantity: number; total: number })[];
   }, [cart, products]);
 
   const totalPrice = useMemo(() => {
@@ -202,6 +195,7 @@ export default function HomeScreen() {
     };
 
     setCanScan(false);
+    playScanFeedback();
 
     const product = products.find((item) => item.barcode === barcode);
 
@@ -230,7 +224,6 @@ export default function HomeScreen() {
           showToast(text, "error");
           return;
         }
-        playScanSound();
         const text = `${product.name} stock increased by 1.`;
         setMessage(text);
         showToast(text, "success");
@@ -252,7 +245,6 @@ export default function HomeScreen() {
         ...prevCart,
         [barcode]: (prevCart[barcode] || 0) + 1,
       }));
-      playScanSound();
       const text = `${product.name} added to cart.`;
       setMessage(text);
       showToast(text, "success");
@@ -292,6 +284,13 @@ export default function HomeScreen() {
           return;
         }
       }
+
+      await recordSaleLog({
+        items: cartItems,
+        totalAmount: totalPrice,
+        totalItems: totalCartQuantity,
+        userId: user?.id,
+      });
 
       setCart({});
 

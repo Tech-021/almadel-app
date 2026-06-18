@@ -1,112 +1,164 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Alert, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { useAuth } from "@/hooks/use-auth";
 
-export default function TabTwoScreen() {
+export default function AccountScreen() {
+  const { loading, role, signOut, user } = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    Alert.alert("Sign out", "Do you want to leave this session?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Sign out",
+        style: "destructive",
+        onPress: async () => {
+          await signOut();
+          router.replace("/");
+        },
+      },
+    ]);
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.avatar}>
+            <Ionicons name={role === "admin" ? "shield-checkmark" : "person"} size={30} color="#FFFFFF" />
+          </View>
+
+          <Text style={styles.title}>Account</Text>
+          <Text style={styles.subtitle}>Signed in workspace profile</Text>
+        </View>
+
+        <View style={styles.panel}>
+          <InfoRow icon="mail-outline" label="Email" value={user?.email ?? "Unknown"} />
+          <InfoRow icon="id-card-outline" label="Role" value={role ?? "Staff"} />
+          <InfoRow icon="checkmark-circle-outline" label="Status" value="Active session" />
+        </View>
+
+        <Pressable style={[styles.signOutButton, loading && styles.disabledButton]} disabled={loading} onPress={handleSignOut}>
+          <Ionicons name="log-out-outline" size={21} color="#FFFFFF" />
+          <Text style={styles.signOutText}>{loading ? "Signing out..." : "Sign out"}</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+type InfoRowProps = {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+};
+
+function InfoRow({ icon, label, value }: InfoRowProps) {
+  return (
+    <View style={styles.infoRow}>
+      <View style={styles.infoIcon}>
+        <Ionicons name={icon} size={19} color="#0F766E" />
+      </View>
+
+      <View style={styles.infoTextBlock}>
+        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={styles.infoValue}>{value}</Text>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F4F7FB",
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  container: {
+    flex: 1,
+    padding: 22,
+  },
+  header: {
+    marginBottom: 22,
+  },
+  avatar: {
+    width: 62,
+    height: 62,
+    alignItems: "center",
+    backgroundColor: "#0F172A",
+    borderRadius: 8,
+    justifyContent: "center",
+    marginBottom: 18,
+  },
+  title: {
+    color: "#0F172A",
+    fontSize: 32,
+    fontWeight: "900",
+  },
+  subtitle: {
+    color: "#64748B",
+    fontSize: 15,
+    fontWeight: "700",
+    marginTop: 6,
+  },
+  panel: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E2E8F0",
+    borderRadius: 8,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  infoRow: {
+    alignItems: "center",
+    borderBottomColor: "#E2E8F0",
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    gap: 13,
+    padding: 16,
+  },
+  infoIcon: {
+    alignItems: "center",
+    backgroundColor: "#ECFDF5",
+    borderRadius: 8,
+    height: 42,
+    justifyContent: "center",
+    width: 42,
+  },
+  infoTextBlock: {
+    flex: 1,
+  },
+  infoLabel: {
+    color: "#64748B",
+    fontSize: 12,
+    fontWeight: "900",
+    marginBottom: 3,
+    textTransform: "uppercase",
+  },
+  infoValue: {
+    color: "#0F172A",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  signOutButton: {
+    alignItems: "center",
+    backgroundColor: "#DC2626",
+    borderRadius: 8,
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+    marginTop: 18,
+    minHeight: 54,
+  },
+  signOutText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 });
