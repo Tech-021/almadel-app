@@ -1,10 +1,39 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { AdminScreenShell } from "@/components/admin/admin-screen-shell";
 import { useProducts } from "@/hooks/use-products";
+import type { Product } from "@/types/inventory";
 
 export default function ProductsScreen() {
-  const { fetchProducts, loading, products } = useProducts();
+  const { deleteProduct, fetchProducts, loading, products } = useProducts();
+
+  const confirmDelete = (product: Product) => {
+    Alert.alert(
+      "Delete product",
+      `Delete ${product.name}? This cannot be undone if the product has no sale history.`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteProduct(product.id);
+            } catch (error) {
+              Alert.alert(
+                "Could not delete product",
+                error instanceof Error ? error.message : "Please try again."
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <AdminScreenShell
@@ -31,6 +60,10 @@ export default function ProductsScreen() {
                   {product.stock}
                 </Text>
               </View>
+
+              <Pressable style={styles.deleteButton} onPress={() => confirmDelete(product)}>
+                <Ionicons name="trash-outline" size={20} color="#DC2626" />
+              </Pressable>
             </View>
           ))
         )}
@@ -94,6 +127,16 @@ const styles = StyleSheet.create({
     color: "#2563EB",
     fontSize: 18,
     fontWeight: "900",
+  },
+  deleteButton: {
+    alignItems: "center",
+    backgroundColor: "#FEF2F2",
+    borderColor: "#FECACA",
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 48,
+    justifyContent: "center",
+    width: 48,
   },
   lowStockText: {
     color: "#DC2626",

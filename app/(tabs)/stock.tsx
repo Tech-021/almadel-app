@@ -14,7 +14,7 @@ const emptyDraft: StockAdjustmentDraft = {
 };
 
 export default function StockScreen() {
-  const { addStock, findByBarcode, loading } = useProducts();
+  const { addStock, findByBarcodeLive, loading } = useProducts();
   const [draft, setDraft] = useState<StockAdjustmentDraft>(emptyDraft);
   const [product, setProduct] = useState<Product | null>(null);
 
@@ -22,14 +22,23 @@ export default function StockScreen() {
     setDraft((current) => ({ ...current, [key]: value }));
   };
 
-  const handleScan = (barcode: string) => {
-    const foundProduct = findByBarcode(barcode);
-    setDraft((current) => ({ ...current, barcode }));
-    setProduct(foundProduct ?? null);
+  const handleScan = async (barcode: string) => {
+    try {
+      const foundProduct = await findByBarcodeLive(barcode);
+      setDraft((current) => ({ ...current, barcode }));
+      setProduct(foundProduct ?? null);
 
-    if (!foundProduct) {
-      Alert.alert("Product not found", "Add this product first before adding stock.");
+      if (!foundProduct) {
+        Alert.alert("Product not found", "Add this product first before adding stock.");
+      }
+    } catch (error) {
+      Alert.alert("Lookup failed", error instanceof Error ? error.message : "Please try again.");
     }
+  };
+
+  const resetForNextScan = () => {
+    setDraft(emptyDraft);
+    setProduct(null);
   };
 
   const submit = async () => {
@@ -53,9 +62,17 @@ export default function StockScreen() {
 
       {product && (
         <View style={styles.productPanel}>
-          <Text style={styles.productName}>{product.name}</Text>
-          <Text style={styles.productMeta}>Current stock: {product.stock}</Text>
-          <Text style={styles.productMeta}>Barcode: {product.barcode}</Text>
+          <View style={styles.productHeader}>
+            <View style={styles.productContent}>
+              <Text style={styles.productName}>{product.name}</Text>
+              <Text style={styles.productMeta}>Current stock: {product.stock}</Text>
+              <Text style={styles.productMeta}>Barcode: {product.barcode}</Text>
+            </View>
+
+            <Pressable style={styles.rescanButton} onPress={resetForNextScan}>
+              <Text style={styles.rescanButtonText}>Scan another</Text>
+            </Pressable>
+          </View>
         </View>
       )}
 
@@ -88,6 +105,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 14,
   },
+  productHeader: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "space-between",
+  },
+  productContent: {
+    flex: 1,
+  },
   productName: {
     color: "#0F172A",
     fontSize: 17,
@@ -114,5 +140,20 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.7,
+  },
+  rescanButton: {
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#A7F3D0",
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 38,
+    paddingHorizontal: 12,
+  },
+  rescanButtonText: {
+    color: "#0F766E",
+    fontSize: 12,
+    fontWeight: "900",
   },
 });

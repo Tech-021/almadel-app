@@ -1,46 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/use-auth";
+import { api } from "@/lib/api";
 import type { Product, SaleRecord } from "@/types/inventory";
 
 export function useSalesDashboard() {
+  const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [sales, setSales] = useState<SaleRecord[]>([]);
-  const [salesLogAvailable, setSalesLogAvailable] = useState(true);
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
 
     try {
-      const [{ data: productData, error: productError }, { data: salesData, error: salesError }] =
-        await Promise.all([
-          supabase.from("products").select("id, barcode, name, price, stock"),
-          supabase
-            .from("sales")
-            .select("id, total_amount, total_items, created_at")
-            .order("created_at", { ascending: false })
-            .limit(25),
-        ]);
-
-      if (productError) {
-        throw new Error(productError.message);
-      }
-
-      setProducts(productData ?? []);
-
-      if (salesError) {
-        console.log("Sales dashboard log unavailable:", salesError);
-        setSales([]);
-        setSalesLogAvailable(false);
-      } else {
-        setSales(salesData ?? []);
-        setSalesLogAvailable(true);
-      }
+      const data = await api.getDashboard(token);
+      setProducts(data.products);
+      setSales(data.sales);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     fetchDashboard();
@@ -71,6 +51,6 @@ export function useSalesDashboard() {
     metrics,
     products,
     sales,
-    salesLogAvailable,
+    salesLogAvailable: true,
   };
 }

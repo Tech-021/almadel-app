@@ -3,18 +3,19 @@ import {
   Alert,
   Animated,
   RefreshControl,
-  SafeAreaView,
   View,
   Text,
   StyleSheet,
   Pressable,
   ScrollView,
+  Modal,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { useFocusEffect } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useScanFeedback } from "@/hooks/use-scan-feedback";
-import { recordSaleLog } from "@/lib/sales-logs";
-import { supabase } from "../../lib/supabase";
+import { api } from "@/lib/api";
 
 type Product = {
   id: number;
@@ -35,11 +36,20 @@ type ToastState = {
 const SCAN_COOLDOWN_MS = 1800;
 
 export default function HomeScreen() {
-  const [permission, requestPermission] = useCameraPermissions();
-  const { user } = useAuth();
+  return <StaffInventoryScreen fixedMode="sale" />;
+}
 
-  const [mode, setMode] = useState<Mode>("sale");
+type StaffInventoryScreenProps = {
+  fixedMode: Mode;
+};
+
+export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
+  const [permission, requestPermission] = useCameraPermissions();
+  const { token } = useAuth();
+
+  const [mode] = useState<Mode>(fixedMode);
   const [canScan, setCanScan] = useState(true);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [message, setMessage] = useState("Scan a barcode to start.");
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -56,6 +66,20 @@ export default function HomeScreen() {
   const toastTranslateY = useRef(new Animated.Value(-18)).current;
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { playScanFeedback } = useScanFeedback();
+  const scannerReady = Boolean(scannerOpen && canScan && !savingStock);
+
+  useFocusEffect(
+    useCallback(() => {
+      scanLockRef.current = false;
+      lastScanRef.current = null;
+      setCanScan(true);
+
+      return () => {
+        scanLockRef.current = true;
+        setScannerOpen(false);
+      };
+    }, [])
+  );
 
   const showToast = useCallback(
     (toastMessage: string, type: ToastType = "info") => {
@@ -118,22 +142,17 @@ export default function HomeScreen() {
   const fetchProducts = useCallback(async () => {
     setLoadingProducts(true);
 
-    const { data, error } = await supabase
-      .from("products")
-      .select("id, barcode, name, price, stock")
-      .order("name", { ascending: true });
-
-    if (error) {
+    try {
+      const data = await api.getProducts(token);
+      setProducts(data);
+    } catch (error) {
       console.log("Fetch products error:", error);
       setMessage("Could not load products from database.");
       showToast("Could not load products.", "error");
+    } finally {
       setLoadingProducts(false);
-      return;
     }
-
-    setProducts(data || []);
-    setLoadingProducts(false);
-  }, [showToast]);
+  }, [showToast, token]);
 
   useEffect(() => {
     fetchProducts();
@@ -162,6 +181,14 @@ export default function HomeScreen() {
   const totalCartQuantity = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.quantity, 0);
   }, [cartItems]);
+
+  const totalStockQuantity = useMemo(() => {
+    return products.reduce((sum, item) => sum + item.stock, 0);
+  }, [products]);
+
+  const lowStockCount = useMemo(() => {
+    return products.filter((item) => item.stock <= 5).length;
+  }, [products]);
 
   const releaseScanner = useCallback(() => {
     setTimeout(() => {
@@ -212,12 +239,9 @@ export default function HomeScreen() {
 
         const newStock = product.stock + 1;
 
-        const { error } = await supabase
-          .from("products")
-          .update({ stock: newStock })
-          .eq("barcode", barcode);
-
-        if (error) {
+        try {
+          await api.receiveOneStock(barcode, token);
+        } catch (error) {
           console.log("Receive stock error:", error);
           const text = `Could not update stock for ${product.name}.`;
           setMessage(text);
@@ -259,38 +283,7 @@ export default function HomeScreen() {
     setMessage("Saving sale...");
 
     try {
-      for (const item of cartItems) {
-        const newStock = item.stock - item.quantity;
-
-        if (newStock < 0) {
-          const text = `Not enough stock for ${item.name}.`;
-          setMessage(text);
-          showToast(text, "error");
-          setSavingStock(false);
-          return;
-        }
-
-        const { error } = await supabase
-          .from("products")
-          .update({ stock: newStock })
-          .eq("barcode", item.barcode);
-
-        if (error) {
-          console.log("Checkout stock error:", error);
-          const text = `Could not update stock for ${item.name}.`;
-          setMessage(text);
-          showToast(text, "error");
-          setSavingStock(false);
-          return;
-        }
-      }
-
-      await recordSaleLog({
-        items: cartItems,
-        totalAmount: totalPrice,
-        totalItems: totalCartQuantity,
-        userId: user?.id,
-      });
+      await api.checkout(cartItems, token);
 
       setCart({});
 
@@ -357,32 +350,33 @@ export default function HomeScreen() {
     return "i";
   };
 
+  const openScanner = async () => {
+    if (!permission?.granted) {
+      const result = await requestPermission();
+
+      if (!result.granted) {
+        setMessage("Camera permission is required to scan products.");
+        showToast("Camera permission is required.", "warning");
+        return;
+      }
+    }
+
+    scanLockRef.current = false;
+    lastScanRef.current = null;
+    setCanScan(true);
+    setScannerOpen(true);
+  };
+
+  const closeScanner = () => {
+    scanLockRef.current = true;
+    setScannerOpen(false);
+    setCanScan(true);
+  };
+
   if (!permission) {
     return (
       <SafeAreaView style={styles.center}>
         <Text style={styles.loadingText}>Loading camera...</Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <SafeAreaView style={styles.permissionContainer}>
-        <Text style={styles.permissionTitle}>Camera Permission Required</Text>
-
-        <Text style={styles.permissionText}>
-          This app needs camera access to scan product barcodes.
-        </Text>
-
-        <Pressable
-          style={styles.primaryButton}
-          onPress={async () => {
-            const result = await requestPermission();
-            console.log("Camera permission result:", result);
-          }}
-        >
-          <Text style={styles.primaryButtonText}>Allow Camera</Text>
-        </Pressable>
       </SafeAreaView>
     );
   }
@@ -412,16 +406,70 @@ export default function HomeScreen() {
         </Animated.View>
       )}
 
+      <Modal
+        animationType="slide"
+        onRequestClose={closeScanner}
+        presentationStyle="fullScreen"
+        visible={scannerOpen}
+      >
+        <View style={styles.scannerModal}>
+          <CameraView
+            style={styles.scannerModalCamera}
+            facing="back"
+            onBarcodeScanned={scannerReady ? handleBarcodeScanned : undefined}
+            barcodeScannerSettings={{
+              barcodeTypes: [
+                "ean13",
+                "ean8",
+                "upc_a",
+                "upc_e",
+                "code128",
+              ],
+            }}
+          />
+
+          <View style={styles.scannerModalOverlay} />
+
+          <Pressable style={styles.scannerModalCloseButton} onPress={closeScanner}>
+            <Text style={styles.scannerModalCloseText}>Close</Text>
+          </Pressable>
+
+          <View style={styles.scannerModalFrame}>
+            <View style={styles.scanCornerTopLeft} />
+            <View style={styles.scanCornerTopRight} />
+            <View style={styles.scanCornerBottomLeft} />
+            <View style={styles.scanCornerBottomRight} />
+            <View style={styles.scanLine} />
+          </View>
+
+          <View style={styles.scannerModalStatus}>
+            <View
+              style={[
+                styles.statusDot,
+                canScan && !savingStock ? styles.statusDotReady : styles.statusDotBusy,
+              ]}
+            />
+            <Text style={styles.scanStatusText}>
+              {savingStock ? "Saving..." : canScan ? "Ready to scan" : "Processing scan..."}
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
       <ScrollView
         contentContainerStyle={styles.container}
         refreshControl={
           <RefreshControl refreshing={loadingProducts} onRefresh={fetchProducts} />
         }
       >
-        <Text style={styles.pageTitle}>Barcode Inventory System</Text>
+        <Text style={styles.pageTitle}>
+          {mode === "sale" ? "Sale Mode" : "Receive Stock"}
+        </Text>
 
         <Text style={styles.pageSubtitle}>
-          Scan products, calculate price, and update stock.
+          {mode === "sale"
+            ? "Scan products, build the cart, and complete the sale."
+            : "Scan existing products to increase stock by one."}
         </Text>
 
         <View style={styles.statsGrid}>
@@ -431,99 +479,50 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Cart Items</Text>
-            <Text style={styles.statValue}>{totalCartQuantity}</Text>
+            <Text style={styles.statLabel}>
+              {mode === "sale" ? "Cart Items" : "Total Stock"}
+            </Text>
+            <Text style={styles.statValue}>
+              {mode === "sale" ? totalCartQuantity : totalStockQuantity}
+            </Text>
           </View>
 
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Total</Text>
-            <Text style={styles.statValueSmall}>Rs {totalPrice}</Text>
+            <Text style={styles.statLabel}>
+              {mode === "sale" ? "Total" : "Low Stock"}
+            </Text>
+            <Text style={styles.statValueSmall}>
+              {mode === "sale" ? `Rs ${totalPrice}` : lowStockCount}
+            </Text>
           </View>
         </View>
 
-        <View style={styles.modeBox}>
-          <Pressable
-            style={[styles.modeButton, mode === "sale" && styles.activeMode]}
-            onPress={() => setMode("sale")}
-          >
-            <Text
-              style={[
-                styles.modeButtonText,
-                mode === "sale" && styles.activeModeText,
-              ]}
-            >
-              Sale Mode
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.modeButton, mode === "receive" && styles.activeMode]}
-            onPress={() => setMode("receive")}
-          >
-            <Text
-              style={[
-                styles.modeButtonText,
-                mode === "receive" && styles.activeModeText,
-              ]}
-            >
-              Receive Stock
-            </Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.cameraCard}>
-          <CameraView
-            style={styles.camera}
-            facing="back"
-            onBarcodeScanned={
-              canScan && !savingStock ? handleBarcodeScanned : undefined
-            }
-            barcodeScannerSettings={{
-              barcodeTypes: [
-                "ean13",
-                "ean8",
-                "upc_a",
-                "upc_e",
-                "code128",
-                "qr",
-              ],
-            }}
-          />
-
-          <View style={styles.cameraOverlay} />
-
-          <View style={styles.scanFrame}>
-            <View style={styles.scanCornerTopLeft} />
-            <View style={styles.scanCornerTopRight} />
-            <View style={styles.scanCornerBottomLeft} />
-            <View style={styles.scanCornerBottomRight} />
-            <View style={styles.scanLine} />
+        <View style={styles.scannerLaunchCard}>
+          <View style={styles.scannerLaunchIcon}>
+            <Text style={styles.scannerLaunchIconText}>[]</Text>
           </View>
 
-          <View style={styles.scanStatusPill}>
-            <View
-              style={[
-                styles.statusDot,
-                canScan && !savingStock
-                  ? styles.statusDotReady
-                  : styles.statusDotBusy,
-              ]}
-            />
-
-            <Text style={styles.scanStatusText}>
-              {savingStock
-                ? "Saving..."
-                : canScan
-                  ? "Ready to scan"
-                  : "Processing scan..."}
+          <View style={styles.scannerLaunchContent}>
+            <Text style={styles.scannerLaunchTitle}>
+              {mode === "sale" ? "Ready for sale scan" : "Ready for stock scan"}
+            </Text>
+            <Text style={styles.scannerLaunchText}>
+              Open the scanner when you are ready to scan a product barcode.
             </Text>
           </View>
+
+          <Pressable style={styles.openScannerButton} onPress={openScanner}>
+            <Text style={styles.openScannerButtonText}>
+              {permission.granted ? "Open Scanner" : "Allow Camera"}
+            </Text>
+          </Pressable>
         </View>
 
         <View style={styles.messageBox}>
           <Text style={styles.messageText}>{message}</Text>
         </View>
 
+        {mode === "sale" && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Cart</Text>
 
@@ -572,6 +571,7 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Inventory</Text>
@@ -761,6 +761,129 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
 
+  scannerLaunchCard: {
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E2E8F0",
+    borderRadius: 18,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 16,
+    padding: 16,
+    shadowColor: "#64748B",
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+
+  scannerLaunchIcon: {
+    alignItems: "center",
+    backgroundColor: "#ECFDF5",
+    borderRadius: 12,
+    height: 46,
+    justifyContent: "center",
+    width: 46,
+  },
+
+  scannerLaunchIconText: {
+    color: "#0F766E",
+    fontSize: 16,
+    fontWeight: "900",
+  },
+
+  scannerLaunchContent: {
+    flex: 1,
+  },
+
+  scannerLaunchTitle: {
+    color: "#0F172A",
+    fontSize: 15,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+
+  scannerLaunchText: {
+    color: "#64748B",
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 17,
+  },
+
+  openScannerButton: {
+    alignItems: "center",
+    backgroundColor: "#0F766E",
+    borderRadius: 12,
+    justifyContent: "center",
+    minHeight: 44,
+    paddingHorizontal: 14,
+  },
+
+  openScannerButtonText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  scannerModal: {
+    flex: 1,
+    backgroundColor: "#020617",
+  },
+
+  scannerModalCamera: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  scannerModalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(2, 6, 23, 0.12)",
+  },
+
+  scannerModalCloseButton: {
+    position: "absolute",
+    top: 50,
+    right: 18,
+    zIndex: 8,
+    backgroundColor: "rgba(15, 23, 42, 0.88)",
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+
+  scannerModalCloseText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  scannerModalFrame: {
+    position: "absolute",
+    top: "31%",
+    left: 34,
+    right: 34,
+    height: 180,
+    borderRadius: 24,
+    justifyContent: "center",
+    backgroundColor: "rgba(15, 23, 42, 0.08)",
+  },
+
+  scannerModalStatus: {
+    position: "absolute",
+    bottom: 54,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(15, 23, 42, 0.88)",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+  },
+
   camera: {
     flex: 1,
   },
@@ -768,6 +891,23 @@ const styles = StyleSheet.create({
   cameraOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(2, 6, 23, 0.12)",
+  },
+
+  closeScannerButton: {
+    position: "absolute",
+    right: 14,
+    top: 14,
+    zIndex: 4,
+    backgroundColor: "rgba(15, 23, 42, 0.86)",
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+
+  closeScannerButtonText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "900",
   },
 
   scanFrame: {

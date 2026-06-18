@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthMode, UserRole, useAuth } from "@/hooks/use-auth";
 
@@ -69,7 +69,7 @@ export function AuthCard() {
     try {
       if (isSignUp) {
         await signUpStaff({ email, password, fullName, role: "staff" });
-        Alert.alert("Account created", "Staff account is ready. You can continue after email confirmation if it is enabled.");
+        Alert.alert("Account created", "Staff account is ready. You can sign in now.");
         setMode("signIn");
         return;
       }
@@ -83,13 +83,16 @@ export function AuthCard() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <ScrollView
+          automaticallyAdjustKeyboardInsets
+          keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="always"
+          showsVerticalScrollIndicator
         >
           <View style={styles.brandBlock}>
             <View style={styles.logoMark}>
@@ -228,8 +231,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     padding: 22,
+    paddingBottom: 140,
+    paddingTop: 34,
   },
   brandBlock: {
     marginBottom: 22,

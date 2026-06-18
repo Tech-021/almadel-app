@@ -1,7 +1,6 @@
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { Session, User } from "@supabase/supabase-js";
 
-import { supabase } from "@/lib/supabase";
+import { api, ApiUser } from "@/lib/api";
 
 export type UserRole = "admin" | "staff";
 export type AuthMode = "signIn" | "signUp";
@@ -19,8 +18,9 @@ type SignUpCredentials = AuthCredentials & {
 type AuthContextValue = {
   initializing: boolean;
   loading: boolean;
-  session: Session | null;
-  user: User | null;
+  session: boolean;
+  token: string | null;
+  user: ApiUser | null;
   role: UserRole | null;
   signIn: (credentials: AuthCredentials) => Promise<void>;
   signUpStaff: (credentials: SignUpCredentials) => Promise<void>;
@@ -29,8 +29,8 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function getUserRole(user: User | null): UserRole | null {
-  const role = user?.user_metadata?.role;
+function getUserRole(user: ApiUser | null): UserRole | null {
+  const role = user?.role;
 
   return role === "admin" || role === "staff" ? role : null;
 }
@@ -38,40 +38,19 @@ function getUserRole(user: User | null): UserRole | null {
 export function AuthProvider({ children }: PropsWithChildren) {
   const [initializing, setInitializing] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [session, setSession] = useState<Session | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<ApiUser | null>(null);
 
   useEffect(() => {
-    let mounted = true;
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-
-      setSession(data.session);
-      setInitializing(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setInitializing(false);
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    setInitializing(false);
   }, []);
 
   const signOut = useCallback(async () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        throw new Error(error.message);
-      }
+      setToken(null);
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -81,26 +60,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      const response = await api.signIn(email, password, role);
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      const accountRole = getUserRole(data.user);
-
-      if (role === "admin" && accountRole !== "admin") {
-        await supabase.auth.signOut();
-        throw new Error("Only admin accounts can use admin login.");
-      }
-
-      if (role === "staff" && accountRole === "admin") {
-        await supabase.auth.signOut();
-        throw new Error("Please use admin login for this account.");
-      }
+      setToken(response.token);
+      setUser(response.user);
     } finally {
       setLoading(false);
     }
@@ -110,20 +73,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          data: {
-            full_name: fullName.trim(),
-            role: "staff",
-          },
-        },
-      });
+      const response = await api.signUpStaff(email, password, fullName);
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      setToken(response.token);
+      setUser(response.user);
     } finally {
       setLoading(false);
     }
@@ -133,14 +86,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     () => ({
       initializing,
       loading,
-      session,
-      user: session?.user ?? null,
-      role: getUserRole(session?.user ?? null),
+      session: Boolean(token && user),
+      token,
+      user,
+      role: getUserRole(user),
       signIn,
       signUpStaff,
       signOut,
     }),
-    [initializing, loading, session, signIn, signOut, signUpStaff]
+    [initializing, loading, signIn, signOut, signUpStaff, token, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

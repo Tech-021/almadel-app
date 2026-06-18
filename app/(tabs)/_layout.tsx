@@ -1,5 +1,5 @@
-import { Tabs, useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
+import { Tabs } from 'expo-router';
+import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -11,14 +11,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { initializing, role, session } = useAuth();
-  const router = useRouter();
   const isAdmin = role === 'admin';
-
-  useEffect(() => {
-    if (!initializing && !session) {
-      router.replace('/');
-    }
-  }, [initializing, router, session]);
 
   if (initializing || !session) {
     return null;
@@ -26,6 +19,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName={isAdmin ? 'dashboard' : 'index'}
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
@@ -34,8 +28,19 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          href: isAdmin ? null : undefined,
+          lazy: false,
+          title: 'Sale',
+          tabBarIcon: ({ color, size }) => <Ionicons name="cart-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="receive"
+        options={{
+          href: isAdmin ? null : undefined,
+          lazy: false,
+          title: 'Receive',
+          tabBarIcon: ({ color, size }) => <Ionicons name="download-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen

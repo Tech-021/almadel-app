@@ -15,30 +15,41 @@ const emptyDraft: ProductDraft = {
 };
 
 export default function AddProductScreen() {
-  const { addProduct, findByBarcode, loading } = useProducts();
+  const { addProduct, findByBarcodeLive, loading } = useProducts();
   const [draft, setDraft] = useState<ProductDraft>(emptyDraft);
   const [formVisible, setFormVisible] = useState(false);
+  const [scannerResetKey, setScannerResetKey] = useState(0);
 
   const updateDraft = (key: keyof ProductDraft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
   };
 
-  const handleScan = (barcode: string) => {
-    const existingProduct = findByBarcode(barcode);
+  const handleScan = async (barcode: string) => {
+    try {
+      const existingProduct = await findByBarcodeLive(barcode);
 
-    setDraft({ ...emptyDraft, barcode });
-    setFormVisible(true);
+      if (existingProduct) {
+        Alert.alert("Product already exists", `${existingProduct.name} is already in products.`);
+        return;
+      }
 
-    if (existingProduct) {
-      Alert.alert("Product already exists", `${existingProduct.name} is already in products.`);
+      setDraft({ ...emptyDraft, barcode });
+      setFormVisible(true);
+    } catch (error) {
+      Alert.alert("Lookup failed", error instanceof Error ? error.message : "Please try again.");
     }
+  };
+
+  const resetForNextScan = () => {
+    setDraft(emptyDraft);
+    setFormVisible(false);
+    setScannerResetKey((key) => key + 1);
   };
 
   const submit = async () => {
     try {
       await addProduct(draft);
-      setDraft(emptyDraft);
-      setFormVisible(false);
+      resetForNextScan();
       Alert.alert("Product added", "The form is clear and ready for the next scan.");
     } catch (error) {
       Alert.alert("Could not add product", error instanceof Error ? error.message : "Please try again.");
@@ -51,11 +62,27 @@ export default function AddProductScreen() {
       subtitle="Scan a new barcode first, then complete the product form."
       title="Add Product"
     >
-      <BarcodeScannerCard active={!formVisible} onScanned={handleScan} title="Scan product barcode" />
+      <BarcodeScannerCard
+        active={!formVisible}
+        helper="Keep the barcode inside the frame. You can also enter it manually."
+        manualPlaceholder="Type barcode"
+        onScanned={handleScan}
+        resetKey={scannerResetKey}
+        title="Scan product barcode"
+      />
 
       {formVisible && (
         <View style={styles.formPanel}>
-          <Text style={styles.panelTitle}>Product details</Text>
+          <View style={styles.formHeader}>
+            <View>
+              <Text style={styles.panelTitle}>Product details</Text>
+              <Text style={styles.panelSubtitle}>Fill product details for barcode {draft.barcode}.</Text>
+            </View>
+
+            <Pressable style={styles.rescanButton} onPress={resetForNextScan}>
+              <Text style={styles.rescanButtonText}>Scan another</Text>
+            </Pressable>
+          </View>
 
           <AdminInput label="Barcode" onChangeText={(value) => updateDraft("barcode", value)} value={draft.barcode} />
           <AdminInput label="Product name" onChangeText={(value) => updateDraft("name", value)} placeholder="Enter product name" value={draft.name} />
@@ -83,7 +110,35 @@ const styles = StyleSheet.create({
     color: "#0F172A",
     fontSize: 18,
     fontWeight: "900",
+  },
+  panelSubtitle: {
+    color: "#64748B",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 18,
+    marginTop: 3,
+  },
+  formHeader: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "space-between",
     marginBottom: 14,
+  },
+  rescanButton: {
+    alignItems: "center",
+    backgroundColor: "#F1F5F9",
+    borderColor: "#CBD5E1",
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 38,
+    paddingHorizontal: 12,
+  },
+  rescanButtonText: {
+    color: "#334155",
+    fontSize: 12,
+    fontWeight: "900",
   },
   submitButton: {
     alignItems: "center",

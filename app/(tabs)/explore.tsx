@@ -1,12 +1,11 @@
-import { Alert, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/hooks/use-auth";
 
 export default function AccountScreen() {
   const { loading, role, signOut, user } = useAuth();
-  const router = useRouter();
 
   const handleSignOut = () => {
     Alert.alert("Sign out", "Do you want to leave this session?", [
@@ -17,10 +16,7 @@ export default function AccountScreen() {
       {
         text: "Sign out",
         style: "destructive",
-        onPress: async () => {
-          await signOut();
-          router.replace("/");
-        },
+        onPress: signOut,
       },
     ]);
   };

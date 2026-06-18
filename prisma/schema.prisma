@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  admin
+  staff
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  fullName     String?
+  passwordHash String
+  role         UserRole   @default(staff)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  sales        Sale[]
+  stockLogs    StockLog[]
+}
+
+model Product {
+  id        Int        @id @default(autoincrement())
+  barcode   String     @unique
+  name      String
+  price     Float
+  stock     Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  saleItems SaleItem[]
+  stockLogs StockLog[]
+}
+
+model Sale {
+  id          Int        @id @default(autoincrement())
+  totalAmount Float
+  totalItems  Int
+  createdAt   DateTime   @default(now())
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id])
+  items       SaleItem[]
+}
+
+model SaleItem {
+  id        Int     @id @default(autoincrement())
+  saleId    Int
+  productId Int
+  barcode   String
+  name      String
+  price     Float
+  quantity  Int
+  total     Float
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model StockLog {
+  id            Int      @id @default(autoincrement())
+  productId     Int
+  barcode       String
+  quantity      Int
+  previousStock Int
+  newStock      Int
+  note          String?
+  createdAt     DateTime @default(now())
+  userId        String?
+  product       Product  @relation(fields: [productId], references: [id])
+  user          User?    @relation(fields: [userId], references: [id])
+}
