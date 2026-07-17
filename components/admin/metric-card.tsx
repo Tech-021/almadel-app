@@ -1,6 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+import { InventoryTheme } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+
 type MetricCardProps = {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
@@ -16,16 +19,18 @@ const toneStyles = {
 };
 
 export function MetricCard({ icon, label, tone = "slate", value }: MetricCardProps) {
+  const colorScheme = useColorScheme();
+  const palette = InventoryTheme[colorScheme ?? "light"];
   const colors = toneStyles[tone];
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
       <View style={[styles.iconBox, { backgroundColor: colors.backgroundColor }]}>
         <Ionicons name={icon} size={20} color={colors.color} />
       </View>
 
-      <Text style={styles.label}>{label}</Text>
-      <Text style={styles.value}>{value}</Text>
+      <Text style={[styles.label, { color: palette.muted }]}>{label}</Text>
+      <Text style={[styles.value, { color: palette.text }]}>{value}</Text>
     </View>
   );
 }
@@ -34,15 +39,16 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
     borderColor: "#E2E8F0",
-    borderRadius: 8,
+    borderRadius: 18,
     borderWidth: 1,
     flex: 1,
     minWidth: 145,
-    padding: 14,
+    padding: 16,
+    elevation: 3,
   },
   iconBox: {
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: 14,
     height: 38,
     justifyContent: "center",
     marginBottom: 12,

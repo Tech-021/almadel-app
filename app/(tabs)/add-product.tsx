@@ -4,6 +4,8 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { AdminInput } from "@/components/admin/admin-input";
 import { AdminScreenShell } from "@/components/admin/admin-screen-shell";
 import { BarcodeScannerCard } from "@/components/admin/barcode-scanner-card";
+import { InventoryTheme } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useProducts } from "@/hooks/use-products";
 import type { ProductDraft } from "@/types/inventory";
 
@@ -19,6 +21,8 @@ export default function AddProductScreen() {
   const [draft, setDraft] = useState<ProductDraft>(emptyDraft);
   const [formVisible, setFormVisible] = useState(false);
   const [scannerResetKey, setScannerResetKey] = useState(0);
+  const colorScheme = useColorScheme();
+  const palette = InventoryTheme[colorScheme ?? "light"];
 
   const updateDraft = (key: keyof ProductDraft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -72,15 +76,15 @@ export default function AddProductScreen() {
       />
 
       {formVisible && (
-        <View style={styles.formPanel}>
+        <View style={[styles.formPanel, { backgroundColor: palette.card, borderColor: palette.border }]}>
           <View style={styles.formHeader}>
             <View>
-              <Text style={styles.panelTitle}>Product details</Text>
-              <Text style={styles.panelSubtitle}>Fill product details for barcode {draft.barcode}.</Text>
+              <Text style={[styles.panelTitle, { color: palette.text }]}>Product details</Text>
+              <Text style={[styles.panelSubtitle, { color: palette.muted }]}>Fill product details for barcode {draft.barcode}.</Text>
             </View>
 
-            <Pressable style={styles.rescanButton} onPress={resetForNextScan}>
-              <Text style={styles.rescanButtonText}>Scan another</Text>
+            <Pressable style={[styles.rescanButton, { backgroundColor: palette.mutedSoft, borderColor: palette.border }]} onPress={resetForNextScan}>
+              <Text style={[styles.rescanButtonText, { color: palette.text }]}>Scan another</Text>
             </Pressable>
           </View>
 
@@ -105,6 +109,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     padding: 16,
+    elevation: 3,
   },
   panelTitle: {
     color: "#0F172A",

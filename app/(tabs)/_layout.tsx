@@ -22,6 +22,18 @@ export default function TabLayout() {
       initialRouteName={isAdmin ? 'dashboard' : 'index'}
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
+        tabBarStyle: {
+          backgroundColor: colorScheme === 'dark' ? '#111827' : '#FFFFFF',
+          borderTopColor: colorScheme === 'dark' ? '#1E293B' : '#E2E8F0',
+          height: 72,
+          paddingBottom: 10,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '800',
+        },
         headerShown: false,
         tabBarButton: HapticTab,
       }}>

@@ -10,6 +10,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { InventoryTheme } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+
 type AdminScreenShellProps = {
   children: ReactNode;
   eyebrow: string;
@@ -27,8 +30,11 @@ export function AdminScreenShell({
   subtitle,
   title,
 }: AdminScreenShellProps) {
+  const colorScheme = useColorScheme();
+  const palette = InventoryTheme[colorScheme ?? "light"];
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
@@ -45,9 +51,9 @@ export function AdminScreenShell({
           showsVerticalScrollIndicator
         >
           <View style={styles.header}>
-            <Text style={styles.eyebrow}>{eyebrow}</Text>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>{subtitle}</Text>
+            <Text style={[styles.eyebrow, { color: palette.accent }]}>{eyebrow}</Text>
+            <Text style={[styles.title, { color: palette.text }]}>{title}</Text>
+            <Text style={[styles.subtitle, { color: palette.muted }]}>{subtitle}</Text>
           </View>
 
           {children}
@@ -66,7 +72,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    padding: 18,
+    padding: 20,
     paddingBottom: 150,
   },
   header: {
@@ -82,7 +88,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#0F172A",
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: "900",
   },
   subtitle: {

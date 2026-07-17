@@ -2,6 +2,8 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { AdminScreenShell } from "@/components/admin/admin-screen-shell";
 import { MetricCard } from "@/components/admin/metric-card";
+import { InventoryTheme } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useSalesDashboard } from "@/hooks/use-sales-dashboard";
 
 function money(value: number) {
@@ -10,6 +12,8 @@ function money(value: number) {
 
 export default function DashboardScreen() {
   const { fetchDashboard, loading, metrics, sales, salesLogAvailable } = useSalesDashboard();
+  const colorScheme = useColorScheme();
+  const palette = InventoryTheme[colorScheme ?? "light"];
 
   return (
     <AdminScreenShell
@@ -26,14 +30,14 @@ export default function DashboardScreen() {
         <MetricCard icon="warning-outline" label="Low stock" tone="red" value={`${metrics.lowStockCount}`} />
       </View>
 
-      <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Inventory value</Text>
+      <View style={[styles.panel, { backgroundColor: palette.card, borderColor: palette.border }]}>
+        <Text style={[styles.panelTitle, { color: palette.text }]}>Inventory value</Text>
         <Text style={styles.panelValue}>{money(metrics.stockValue)}</Text>
-        <Text style={styles.panelMeta}>{metrics.totalItemsSold} items sold from recorded sales.</Text>
+        <Text style={[styles.panelMeta, { color: palette.muted }]}>{metrics.totalItemsSold} items sold from recorded sales.</Text>
       </View>
 
-      <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Recent sales</Text>
+      <View style={[styles.panel, { backgroundColor: palette.card, borderColor: palette.border }]}>
+        <Text style={[styles.panelTitle, { color: palette.text }]}>Recent sales</Text>
 
         {!salesLogAvailable ? (
           <Text style={styles.emptyText}>Sales log table is not available yet.</Text>
@@ -41,10 +45,10 @@ export default function DashboardScreen() {
           <Text style={styles.emptyText}>No sales recorded yet.</Text>
         ) : (
           sales.slice(0, 6).map((sale) => (
-            <View key={sale.id} style={styles.saleRow}>
+            <View key={sale.id} style={[styles.saleRow, { borderTopColor: palette.border }]}>
               <View>
-                <Text style={styles.saleTitle}>Sale #{sale.id}</Text>
-                <Text style={styles.saleMeta}>{sale.total_items ?? 0} items</Text>
+                <Text style={[styles.saleTitle, { color: palette.text }]}>Sale #{sale.id}</Text>
+                <Text style={[styles.saleMeta, { color: palette.muted }]}>{sale.total_items ?? 0} items</Text>
               </View>
               <Text style={styles.saleAmount}>{money(sale.total_amount ?? 0)}</Text>
             </View>
@@ -69,6 +73,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 16,
     padding: 16,
+    elevation: 3,
   },
   panelTitle: {
     color: "#0F172A",

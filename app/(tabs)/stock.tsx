@@ -4,6 +4,8 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { AdminInput } from "@/components/admin/admin-input";
 import { AdminScreenShell } from "@/components/admin/admin-screen-shell";
 import { BarcodeScannerCard } from "@/components/admin/barcode-scanner-card";
+import { InventoryTheme } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useProducts } from "@/hooks/use-products";
 import type { Product, StockAdjustmentDraft } from "@/types/inventory";
 
@@ -17,6 +19,8 @@ export default function StockScreen() {
   const { addStock, findByBarcodeLive, loading } = useProducts();
   const [draft, setDraft] = useState<StockAdjustmentDraft>(emptyDraft);
   const [product, setProduct] = useState<Product | null>(null);
+  const colorScheme = useColorScheme();
+  const palette = InventoryTheme[colorScheme ?? "light"];
 
   const updateDraft = (key: keyof StockAdjustmentDraft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -61,22 +65,22 @@ export default function StockScreen() {
       <BarcodeScannerCard active={!product} onScanned={handleScan} title="Scan product to receive stock" />
 
       {product && (
-        <View style={styles.productPanel}>
+        <View style={[styles.productPanel, { backgroundColor: palette.successSoft }]}>
           <View style={styles.productHeader}>
             <View style={styles.productContent}>
-              <Text style={styles.productName}>{product.name}</Text>
+              <Text style={[styles.productName, { color: palette.text }]}>{product.name}</Text>
               <Text style={styles.productMeta}>Current stock: {product.stock}</Text>
               <Text style={styles.productMeta}>Barcode: {product.barcode}</Text>
             </View>
 
-            <Pressable style={styles.rescanButton} onPress={resetForNextScan}>
+            <Pressable style={[styles.rescanButton, { backgroundColor: palette.card }]} onPress={resetForNextScan}>
               <Text style={styles.rescanButtonText}>Scan another</Text>
             </Pressable>
           </View>
         </View>
       )}
 
-      <View style={styles.formPanel}>
+      <View style={[styles.formPanel, { backgroundColor: palette.card, borderColor: palette.border }]}>
         <AdminInput label="Barcode" onChangeText={(value) => updateDraft("barcode", value)} value={draft.barcode} />
         <AdminInput keyboardType="numeric" label="Quantity to add" onChangeText={(value) => updateDraft("quantity", value)} value={draft.quantity} />
         <AdminInput label="Note" onChangeText={(value) => updateDraft("note", value)} placeholder="Supplier, invoice, or reason" value={draft.note} />
@@ -96,6 +100,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     padding: 16,
+    elevation: 3,
   },
   productPanel: {
     backgroundColor: "#ECFDF5",

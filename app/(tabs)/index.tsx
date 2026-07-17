@@ -11,10 +11,13 @@ import {
   Modal,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/hooks/use-auth";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useScanFeedback } from "@/hooks/use-scan-feedback";
+import { InventoryTheme } from "@/constants/theme";
 import { api } from "@/lib/api";
 
 type Product = {
@@ -46,6 +49,8 @@ type StaffInventoryScreenProps = {
 export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
   const [permission, requestPermission] = useCameraPermissions();
   const { token } = useAuth();
+  const colorScheme = useColorScheme();
+  const palette = InventoryTheme[colorScheme ?? "light"];
 
   const [mode] = useState<Mode>(fixedMode);
   const [canScan, setCanScan] = useState(true);
@@ -237,8 +242,6 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
       if (mode === "receive") {
         setSavingStock(true);
 
-        const newStock = product.stock + 1;
-
         try {
           await api.receiveOneStock(barcode, token);
         } catch (error) {
@@ -375,14 +378,14 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
 
   if (!permission) {
     return (
-      <SafeAreaView style={styles.center}>
-        <Text style={styles.loadingText}>Loading camera...</Text>
+      <SafeAreaView style={[styles.center, { backgroundColor: palette.background }]}>
+        <Text style={[styles.loadingText, { color: palette.text }]}>Loading camera...</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
       {toast && (
         <Animated.View
           pointerEvents="none"
@@ -477,11 +480,11 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
           <RefreshControl refreshing={loadingProducts} onRefresh={fetchProducts} />
         }
       >
-        <Text style={styles.pageTitle}>
+        <Text style={[styles.pageTitle, { color: palette.text }]}>
           {mode === "sale" ? "Sale Mode" : "Receive Stock"}
         </Text>
 
-        <Text style={styles.pageSubtitle}>
+        <Text style={[styles.pageSubtitle, { color: palette.muted }]}>
           {mode === "sale"
             ? "Scan products, build the cart, and complete the sale."
             : "Scan existing products to increase stock by one."}
@@ -514,7 +517,7 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
 
         <View style={styles.scannerLaunchCard}>
           <View style={styles.scannerLaunchIcon}>
-            <Text style={styles.scannerLaunchIconText}>[]</Text>
+            <Ionicons name="scan" size={24} color="#2563EB" />
           </View>
 
           <View style={styles.scannerLaunchContent}>
@@ -739,13 +742,6 @@ const styles = StyleSheet.create({
 
   activeMode: {
     backgroundColor: "#0F172A",
-    shadowColor: "#0F172A",
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
     elevation: 4,
   },
 
@@ -766,13 +762,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#020617",
     marginBottom: 16,
     position: "relative",
-    shadowColor: "#0F172A",
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    shadowOpacity: 0.24,
-    shadowRadius: 18,
     elevation: 8,
   },
 
@@ -786,13 +775,6 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 16,
     padding: 16,
-    shadowColor: "#64748B",
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
     elevation: 3,
   },
 
@@ -1034,13 +1016,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#22C55E",
     marginHorizontal: 20,
     borderRadius: 99,
-    shadowColor: "#22C55E",
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
     elevation: 4,
   },
 
@@ -1085,13 +1060,6 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    shadowColor: "#64748B",
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
     elevation: 3,
   },
 
@@ -1109,13 +1077,6 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    shadowColor: "#64748B",
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
     elevation: 4,
   },
 
@@ -1215,13 +1176,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#059669",
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
     elevation: 5,
   },
 
@@ -1279,13 +1233,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 30,
     borderRadius: 16,
-    shadowColor: "#0F172A",
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
     elevation: 5,
   },
 
@@ -1309,13 +1256,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 18,
     borderWidth: 1,
-    shadowColor: "#0F172A",
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
   },
 
   toastSuccess: {

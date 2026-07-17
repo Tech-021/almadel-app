@@ -2,10 +2,14 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { InventoryTheme } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function AccountScreen() {
   const { loading, role, signOut, user } = useAuth();
+  const colorScheme = useColorScheme();
+  const palette = InventoryTheme[colorScheme ?? "light"];
 
   const handleSignOut = () => {
     Alert.alert("Sign out", "Do you want to leave this session?", [
@@ -22,18 +26,18 @@ export default function AccountScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <View style={styles.avatar}>
+          <View style={[styles.avatar, { backgroundColor: palette.accent }]}>
             <Ionicons name={role === "admin" ? "shield-checkmark" : "person"} size={30} color="#FFFFFF" />
           </View>
 
-          <Text style={styles.title}>Account</Text>
-          <Text style={styles.subtitle}>Signed in workspace profile</Text>
+          <Text style={[styles.title, { color: palette.text }]}>Account</Text>
+          <Text style={[styles.subtitle, { color: palette.muted }]}>Signed in workspace profile</Text>
         </View>
 
-        <View style={styles.panel}>
+        <View style={[styles.panel, { backgroundColor: palette.card, borderColor: palette.border }]}>
           <InfoRow icon="mail-outline" label="Email" value={user?.email ?? "Unknown"} />
           <InfoRow icon="id-card-outline" label="Role" value={role ?? "Staff"} />
           <InfoRow icon="checkmark-circle-outline" label="Status" value="Active session" />
@@ -55,15 +59,18 @@ type InfoRowProps = {
 };
 
 function InfoRow({ icon, label, value }: InfoRowProps) {
+  const colorScheme = useColorScheme();
+  const palette = InventoryTheme[colorScheme ?? "light"];
+
   return (
-    <View style={styles.infoRow}>
-      <View style={styles.infoIcon}>
-        <Ionicons name={icon} size={19} color="#0F766E" />
+    <View style={[styles.infoRow, { borderBottomColor: palette.border }]}>
+      <View style={[styles.infoIcon, { backgroundColor: palette.accentSoft }]}>
+        <Ionicons name={icon} size={19} color={palette.accent} />
       </View>
 
       <View style={styles.infoTextBlock}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue}>{value}</Text>
+        <Text style={[styles.infoLabel, { color: palette.muted }]}>{label}</Text>
+        <Text style={[styles.infoValue, { color: palette.text }]}>{value}</Text>
       </View>
     </View>
   );

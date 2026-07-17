@@ -2,11 +2,15 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { AdminScreenShell } from "@/components/admin/admin-screen-shell";
+import { InventoryTheme } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useProducts } from "@/hooks/use-products";
 import type { Product } from "@/types/inventory";
 
 export default function ProductsScreen() {
   const { deleteProduct, fetchProducts, loading, products } = useProducts();
+  const colorScheme = useColorScheme();
+  const palette = InventoryTheme[colorScheme ?? "light"];
 
   const confirmDelete = (product: Product) => {
     Alert.alert(
@@ -43,16 +47,16 @@ export default function ProductsScreen() {
       subtitle="All available products, prices, barcodes, and current stock."
       title="Products"
     >
-      <View style={styles.panel}>
+      <View style={[styles.panel, { backgroundColor: palette.card, borderColor: palette.border }]}>
         {products.length === 0 ? (
           <Text style={styles.emptyText}>No products found.</Text>
         ) : (
           products.map((product) => (
-            <View key={product.id} style={styles.productRow}>
+            <View key={product.id} style={[styles.productRow, { borderBottomColor: palette.border }]}>
               <View style={styles.productInfo}>
-                <Text style={styles.productName}>{product.name}</Text>
-                <Text style={styles.productMeta}>Barcode: {product.barcode}</Text>
-                <Text style={styles.productMeta}>Rs {product.price}</Text>
+                <Text style={[styles.productName, { color: palette.text }]}>{product.name}</Text>
+                <Text style={[styles.productMeta, { color: palette.muted }]}>Barcode: {product.barcode}</Text>
+                <Text style={[styles.productMeta, { color: palette.muted }]}>Rs {product.price}</Text>
               </View>
 
               <View style={[styles.stockBadge, product.stock <= 5 && styles.lowStockBadge]}>

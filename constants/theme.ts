@@ -5,27 +5,64 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = '#2563EB';
+const tintColorDark = '#93C5FD';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#0F172A',
+    background: '#F6F8FC',
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: '#64748B',
+    tabIconDefault: '#94A3B8',
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#F8FAFC',
+    background: '#080D18',
     tint: tintColorDark,
-    icon: '#9BA1A6',
+    icon: '#CBD5E1',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
   },
 };
+
+export const InventoryTheme = {
+  light: {
+    accent: "#2563EB",
+    accentSoft: "#DBEAFE",
+    background: "#F6F8FC",
+    border: "#E2E8F0",
+    card: "#FFFFFF",
+    danger: "#DC2626",
+    dangerSoft: "#FEF2F2",
+    muted: "#64748B",
+    mutedSoft: "#F1F5F9",
+    shadow: "#0F172A",
+    success: "#0F766E",
+    successSoft: "#ECFDF5",
+    text: "#0F172A",
+    warning: "#F59E0B",
+    warningSoft: "#FFFBEB",
+  },
+  dark: {
+    accent: "#60A5FA",
+    accentSoft: "#172554",
+    background: "#080D18",
+    border: "#1E293B",
+    card: "#111827",
+    danger: "#F87171",
+    dangerSoft: "#3F1D25",
+    muted: "#CBD5E1",
+    mutedSoft: "#172033",
+    shadow: "#000000",
+    success: "#5EEAD4",
+    successSoft: "#113A3A",
+    text: "#F8FAFC",
+    warning: "#FBBF24",
+    warningSoft: "#3B2B12",
+  },
+} as const;
 
 export const Fonts = Platform.select({
   ios: {

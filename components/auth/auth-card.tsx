@@ -15,7 +15,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { InventoryTheme } from "@/constants/theme";
 import { AuthMode, UserRole, useAuth } from "@/hooks/use-auth";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 const roleCopy: Record<UserRole, { title: string; eyebrow: string; helper: string }> = {
   admin: {
@@ -32,6 +34,8 @@ const roleCopy: Record<UserRole, { title: string; eyebrow: string; helper: strin
 
 export function AuthCard() {
   const { loading, signIn, signUpStaff } = useAuth();
+  const colorScheme = useColorScheme();
+  const palette = InventoryTheme[colorScheme ?? "light"];
   const [role, setRole] = useState<UserRole>("staff");
   const [mode, setMode] = useState<AuthMode>("signIn");
   const [fullName, setFullName] = useState("");
@@ -81,7 +85,7 @@ export function AuthCard() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
@@ -95,19 +99,19 @@ export function AuthCard() {
           showsVerticalScrollIndicator
         >
           <View style={styles.brandBlock}>
-            <View style={styles.logoMark}>
+            <View style={[styles.logoMark, { backgroundColor: palette.accent }]}>
               <Ionicons name="scan" size={28} color="#FFFFFF" />
             </View>
 
-            <Text style={styles.brandTitle}>Inventory Desk</Text>
-            <Text style={styles.brandSubtitle}>Clean access for barcode sales, stock receiving, and daily inventory control.</Text>
+            <Text style={[styles.brandTitle, { color: palette.text }]}>Inventory Desk</Text>
+            <Text style={[styles.brandSubtitle, { color: palette.muted }]}>Clean access for barcode sales, stock receiving, and daily inventory control.</Text>
           </View>
 
-          <View style={styles.panel}>
+          <View style={[styles.panel, { backgroundColor: palette.card, borderColor: palette.border }]}>
             <View style={styles.panelHeader}>
-              <Text style={styles.eyebrow}>{content.eyebrow}</Text>
-              <Text style={styles.title}>{title}</Text>
-              <Text style={styles.helper}>{content.helper}</Text>
+              <Text style={[styles.eyebrow, { color: palette.accent }]}>{content.eyebrow}</Text>
+              <Text style={[styles.title, { color: palette.text }]}>{title}</Text>
+              <Text style={[styles.helper, { color: palette.muted }]}>{content.helper}</Text>
             </View>
 
             <View style={styles.roleTabs}>
@@ -267,10 +271,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     padding: 18,
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
     elevation: 4,
   },
   panelHeader: {
