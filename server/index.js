@@ -9,6 +9,7 @@ const { prisma } = require("./db");
 
 const app = express();
 const port = Number(process.env.API_PORT ?? 4000);
+const host = process.env.API_HOST ?? "0.0.0.0";
 
 app.use(cors());
 app.use(express.json());
@@ -327,6 +328,7 @@ app.get("/dashboard", requireAuth, requireAdmin, async (_req, res) => {
   });
 });
 
-app.listen(port, () => {
+app.listen(port, host, () => {
   console.log(`API server running on http://localhost:${port}`);
+  console.log(`API server listening for LAN/device requests on port ${port}`);
 });

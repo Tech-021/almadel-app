@@ -40,9 +40,9 @@ export function AdminScreenShell({
         style={styles.keyboardView}
       >
         <ScrollView
-          automaticallyAdjustKeyboardInsets
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
           contentContainerStyle={styles.container}
-          contentInsetAdjustmentBehavior="always"
+          contentInsetAdjustmentBehavior={Platform.OS === "ios" ? "always" : undefined}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           refreshControl={
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 20,
-    paddingBottom: 150,
+    paddingBottom: 96,
   },
   header: {
     marginBottom: 18,

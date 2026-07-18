@@ -200,7 +200,7 @@ type RoleButtonProps = {
 function RoleButton({ active, icon, label, onPress }: RoleButtonProps) {
   return (
     <Pressable style={[styles.roleButton, active && styles.roleButtonActive]} onPress={onPress}>
-      <Ionicons name={icon} size={20} color={active ? "#FFFFFF" : "#334155"} />
+      <Ionicons name={icon} size={20} color={active ? "#0F172A" : "#64748B"} />
       <Text style={[styles.roleButtonText, active && styles.roleButtonTextActive]}>{label}</Text>
     </Pressable>
   );
@@ -297,15 +297,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   roleTabs: {
+    backgroundColor: "#EEF2F7",
+    borderRadius: 8,
     flexDirection: "row",
-    gap: 10,
+    gap: 6,
     marginBottom: 12,
+    padding: 5,
   },
   roleButton: {
     flex: 1,
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    borderColor: "#E2E8F0",
+    backgroundColor: "transparent",
+    borderColor: "transparent",
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
@@ -314,16 +317,16 @@ const styles = StyleSheet.create({
     minHeight: 50,
   },
   roleButtonActive: {
-    backgroundColor: "#0F172A",
-    borderColor: "#0F172A",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#FFFFFF",
   },
   roleButtonText: {
-    color: "#334155",
+    color: "#64748B",
     fontSize: 14,
     fontWeight: "900",
   },
   roleButtonTextActive: {
-    color: "#FFFFFF",
+    color: "#0F172A",
   },
   modeTabs: {
     backgroundColor: "#EEF2F7",

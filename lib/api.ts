@@ -1,4 +1,6 @@
 import type { Product, ProductDraft, SaleRecord, StockAdjustmentDraft } from "@/types/inventory";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
 
 export type ApiUser = {
   id: string;
@@ -23,7 +25,60 @@ type ApiOptions = {
   token?: string | null;
 };
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:4000";
+const DEFAULT_API_PORT = "4000";
+const CONFIGURED_API_URL = process.env.EXPO_PUBLIC_API_URL?.trim();
+
+function withoutTrailingSlash(url: string) {
+  return url.replace(/\/+$/, "");
+}
+
+function isLoopbackHost(hostname: string) {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
+function hostnameFromHostUri(hostUri: string) {
+  const host = hostUri.replace(/^https?:\/\//, "").split("/")[0];
+
+  if (host.startsWith("[")) {
+    return host.slice(1, host.indexOf("]"));
+  }
+
+  return host.split(":")[0];
+}
+
+function getExpoDevServerHost() {
+  const hostUri = Constants.expoConfig?.hostUri;
+
+  if (!hostUri) {
+    return null;
+  }
+
+  const hostname = hostnameFromHostUri(hostUri);
+
+  if (!hostname) {
+    return null;
+  }
+
+  if (Platform.OS === "android" && isLoopbackHost(hostname)) {
+    return "10.0.2.2";
+  }
+
+  return hostname;
+}
+
+function getApiUrl() {
+  if (__DEV__ && Platform.OS !== "web") {
+    const devServerHost = getExpoDevServerHost();
+
+    if (devServerHost) {
+      return `http://${devServerHost}:${DEFAULT_API_PORT}`;
+    }
+  }
+
+  return withoutTrailingSlash(CONFIGURED_API_URL ?? `http://localhost:${DEFAULT_API_PORT}`);
+}
+
+const API_URL = getApiUrl();
 
 async function request<T>(path: string, options: ApiOptions = {}) {
   const url = `${API_URL}${path}`;
