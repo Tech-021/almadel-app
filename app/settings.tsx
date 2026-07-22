@@ -13,21 +13,56 @@ export default function SettingsScreen() {
   const palette = InventoryTheme[colorScheme ?? "light"];
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.eyebrow, { color: palette.accent }]}>Settings</Text>
-        <Text style={[styles.title, { color: palette.text }]}>Connection and session</Text>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: palette.background }]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={[styles.eyebrow, { color: palette.accent }]}>
+          Settings
+        </Text>
+        <Text style={[styles.title, { color: palette.text }]}>
+          Connection and session
+        </Text>
 
-        <View style={[styles.panel, { backgroundColor: palette.card, borderColor: palette.border }]}>
-          <SettingRow icon="cloud-outline" label="API base URL" value={getApiBaseUrl()} />
-          <SettingRow icon="person-outline" label="Signed in as" value={user?.email ?? "Unknown"} />
-          <SettingRow icon="shield-checkmark-outline" label="Session status" value={user ? "Active" : "Signed out"} />
+        <View
+          style={[
+            styles.panel,
+            { backgroundColor: palette.card, borderColor: palette.border },
+          ]}
+        >
+          <SettingRow
+            icon="cloud-outline"
+            label="API base URL"
+            value={getApiBaseUrl()}
+          />
+          <SettingRow
+            icon="person-outline"
+            label="Signed in as"
+            value={user?.email ?? "Unknown"}
+          />
+          <SettingRow
+            icon="shield-checkmark-outline"
+            label="Session status"
+            value={user ? "Active" : "Signed out"}
+          />
         </View>
 
-        <View style={[styles.note, { backgroundColor: palette.mutedSoft, borderColor: palette.border }]}>
-          <Text style={[styles.noteTitle, { color: palette.text }]}>Network note</Text>
+        <View
+          style={[
+            styles.note,
+            { backgroundColor: palette.mutedSoft, borderColor: palette.border },
+          ]}
+        >
+          <Text style={[styles.noteTitle, { color: palette.text }]}>
+            Network note
+          </Text>
           <Text style={[styles.noteText, { color: palette.muted }]}>
-            In development, the app prefers EXPO_PUBLIC_API_URL when provided, otherwise it derives the API host from the Expo dev server and maps Android emulator loopback correctly.
+            In development, the app prefers EXPO_PUBLIC_API_URL when provided,
+            otherwise it derives the API host from the Expo dev server and maps
+            Android emulator loopback correctly.
           </Text>
         </View>
       </ScrollView>

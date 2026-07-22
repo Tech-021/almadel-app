@@ -1,6 +1,14 @@
-import type { ReactNode } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import type { ReactNode } from "react";
+import {
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 
 import { InventoryTheme } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -13,16 +21,31 @@ type AuthScreenShellProps = {
   title: string;
 };
 
-export function AuthScreenShell({ badge, children, footer, subtitle, title }: AuthScreenShellProps) {
+export function AuthScreenShell({
+  badge,
+  children,
+  footer,
+  subtitle,
+  title,
+}: AuthScreenShellProps) {
   const colorScheme = useColorScheme();
   const palette = InventoryTheme[colorScheme ?? "light"];
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
-      <View style={[styles.orbLarge, { backgroundColor: palette.accentSoft }]} />
-      <View style={[styles.orbSmall, { backgroundColor: palette.warningSoft }]} />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: palette.background }]}
+    >
+      <View
+        style={[styles.orbLarge, { backgroundColor: palette.accentSoft }]}
+      />
+      <View
+        style={[styles.orbSmall, { backgroundColor: palette.warningSoft }]}
+      />
 
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardView}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}
+      >
         <ScrollView
           automaticallyAdjustKeyboardInsets
           contentContainerStyle={styles.container}
@@ -31,18 +54,35 @@ export function AuthScreenShell({ badge, children, footer, subtitle, title }: Au
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.hero}>
-            <View style={[styles.logoMark, { backgroundColor: palette.accent }]}>
+            <View
+              style={[styles.logoMark, { backgroundColor: palette.accent }]}
+            >
               <Ionicons name="scan" size={28} color="#FFFFFF" />
             </View>
 
-            <Text style={[styles.brandTitle, { color: palette.text }]}>Inventory Desk</Text>
-            <Text style={[styles.brandSubtitle, { color: palette.muted }]}>{subtitle}</Text>
+            <Text style={[styles.brandTitle, { color: palette.text }]}>
+              Inventory Desk
+            </Text>
+            <Text style={[styles.brandSubtitle, { color: palette.muted }]}>
+              {subtitle}
+            </Text>
           </View>
 
-          <View style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
-            {badge ? <Text style={[styles.badge, { color: palette.accent }]}>{badge}</Text> : null}
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: palette.card, borderColor: palette.border },
+            ]}
+          >
+            {badge ? (
+              <Text style={[styles.badge, { color: palette.accent }]}>
+                {badge}
+              </Text>
+            ) : null}
             <Text style={[styles.title, { color: palette.text }]}>{title}</Text>
-            <Text style={[styles.description, { color: palette.muted }]}>{subtitle}</Text>
+            <Text style={[styles.description, { color: palette.muted }]}>
+              {subtitle}
+            </Text>
 
             <View style={styles.content}>{children}</View>
 

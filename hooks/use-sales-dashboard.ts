@@ -29,13 +29,21 @@ export function useSalesDashboard() {
   }, [fetchDashboard]);
 
   const metrics = useMemo(() => {
-    const totalSales = sales.reduce((sum, sale) => sum + (sale.total_amount ?? 0), 0);
-    const totalItemsSold = sales.reduce((sum, sale) => sum + (sale.total_items ?? 0), 0);
+    const totalSales = sales.reduce(
+      (sum, sale) => sum + (sale.total_amount ?? 0),
+      0,
+    );
+    const totalItemsSold = sales.reduce(
+      (sum, sale) => sum + (sale.total_items ?? 0),
+      0,
+    );
     const stockValue = products.reduce(
       (sum, product) => sum + product.price * product.stock,
-      0
+      0,
     );
-    const lowStockCount = products.filter((product) => product.stock <= 5).length;
+    const lowStockCount = products.filter(
+      (product) => product.stock <= 5,
+    ).length;
 
     return {
       lowStockCount,

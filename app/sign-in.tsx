@@ -24,7 +24,10 @@ export default function SignInScreen() {
     }
   }, [initializing, session]);
 
-  const roleLabel = useMemo(() => (role === "admin" ? "Admin access" : "Staff access"), [role]);
+  const roleLabel = useMemo(
+    () => (role === "admin" ? "Admin access" : "Staff access"),
+    [role],
+  );
 
   const submit = async () => {
     const normalizedEmail = email.trim();
@@ -40,14 +43,18 @@ export default function SignInScreen() {
       await signIn({ email: normalizedEmail, password, role });
       router.replace("/home");
     } catch (authError) {
-      setError(authError instanceof Error ? authError.message : "Authentication failed.");
+      setError(
+        authError instanceof Error
+          ? authError.message
+          : "Authentication failed.",
+      );
     }
   };
 
   const handleForgotPassword = () => {
     Alert.alert(
       "Forgot password",
-      "Password reset is not wired in this frontend. Ask an administrator to help recover the account."
+      "Password reset is not wired in this frontend. Ask an administrator to help recover the account.",
     );
   };
 
@@ -58,8 +65,18 @@ export default function SignInScreen() {
       subtitle="Use your staff or admin account to continue to the workspace."
     >
       <View style={styles.roleRow}>
-        <RoleChip active={role === "staff"} icon="people" label="Staff" onPress={() => setRole("staff")} />
-        <RoleChip active={role === "admin"} icon="shield-checkmark" label="Admin" onPress={() => setRole("admin")} />
+        <RoleChip
+          active={role === "staff"}
+          icon="people"
+          label="Staff"
+          onPress={() => setRole("staff")}
+        />
+        <RoleChip
+          active={role === "admin"}
+          icon="shield-checkmark"
+          label="Admin"
+          onPress={() => setRole("admin")}
+        />
       </View>
 
       <Text style={styles.roleHint}>{roleLabel}</Text>
@@ -85,15 +102,25 @@ export default function SignInScreen() {
         onChangeText={setPassword}
         placeholder="Enter your password"
         rightAction={
-          <Pressable onPress={() => setSecurePassword((value) => !value)} style={styles.iconButton}>
-            <Ionicons name={securePassword ? "eye-outline" : "eye-off-outline"} size={20} color="#64748B" />
+          <Pressable
+            onPress={() => setSecurePassword((value) => !value)}
+            style={styles.iconButton}
+          >
+            <Ionicons
+              name={securePassword ? "eye-outline" : "eye-off-outline"}
+              size={20}
+              color="#64748B"
+            />
           </Pressable>
         }
         secureTextEntry={securePassword}
         value={password}
       />
 
-      <Pressable onPress={handleForgotPassword} style={styles.forgotPasswordButton}>
+      <Pressable
+        onPress={handleForgotPassword}
+        style={styles.forgotPasswordButton}
+      >
         <Text style={styles.forgotPasswordText}>Forgot password?</Text>
       </Pressable>
 
@@ -118,9 +145,14 @@ type RoleChipProps = {
 
 function RoleChip({ active, icon, label, onPress }: RoleChipProps) {
   return (
-    <Pressable style={[styles.roleChip, active && styles.roleChipActive]} onPress={onPress}>
+    <Pressable
+      style={[styles.roleChip, active && styles.roleChipActive]}
+      onPress={onPress}
+    >
       <Ionicons name={icon} size={18} color={active ? "#FFFFFF" : "#64748B"} />
-      <Text style={[styles.roleChipText, active && styles.roleChipTextActive]}>{label}</Text>
+      <Text style={[styles.roleChipText, active && styles.roleChipTextActive]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }

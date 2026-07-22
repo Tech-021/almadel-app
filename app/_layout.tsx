@@ -1,15 +1,19 @@
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import {
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
+} from "@react-navigation/native";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import "react-native-reanimated";
 
-import { AuthProvider, useAuth } from '@/hooks/use-auth';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export const unstable_settings = {
-  initialRouteName: 'index',
+  initialRouteName: "index",
 };
 
 export default function RootLayout() {
@@ -26,9 +30,17 @@ function RootNavigator() {
 
   if (initializing) {
     return (
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <View style={[styles.loadingScreen, { backgroundColor: colorScheme === 'dark' ? '#080D18' : '#F6F8FC' }]}>
-          <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#93C5FD' : '#2563EB'} />
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <View
+          style={[
+            styles.loadingScreen,
+            { backgroundColor: colorScheme === "dark" ? "#080D18" : "#F6F8FC" },
+          ]}
+        >
+          <ActivityIndicator
+            size="large"
+            color={colorScheme === "dark" ? "#93C5FD" : "#2563EB"}
+          />
         </View>
         <StatusBar style="auto" />
       </ThemeProvider>
@@ -36,7 +48,7 @@ function RootNavigator() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={!session}>
           <Stack.Screen name="index" />
@@ -55,7 +67,10 @@ function RootNavigator() {
           <Stack.Screen name="stock" />
           <Stack.Screen name="add-product" />
           <Stack.Screen name="explore" />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          <Stack.Screen
+            name="modal"
+            options={{ presentation: "modal", title: "Modal" }}
+          />
         </Stack.Protected>
       </Stack>
       <StatusBar style="auto" />

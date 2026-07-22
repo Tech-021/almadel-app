@@ -1,4 +1,9 @@
-import type { Product, ProductDraft, SaleRecord, StockAdjustmentDraft } from "@/types/inventory";
+import type {
+    Product,
+    ProductDraft,
+    SaleRecord,
+    StockAdjustmentDraft,
+} from "@/types/inventory";
 
 import { getApiBaseUrl } from "@/lib/api-config";
 
@@ -46,7 +51,7 @@ async function request<T>(path: string, options: ApiOptions = {}) {
     }
 
     throw new Error(
-      `Cannot connect to server at ${API_URL}. Check your network, API_PORT, and EXPO_PUBLIC_API_URL.`
+      `Cannot connect to server at ${API_URL}. Check your network, API_PORT, and EXPO_PUBLIC_API_URL.`,
     );
   }
 
@@ -58,7 +63,7 @@ async function request<T>(path: string, options: ApiOptions = {}) {
       payload = JSON.parse(text);
     } catch {
       throw new Error(
-        `API returned non-JSON from ${url}. Restart the API server and check EXPO_PUBLIC_API_URL.`
+        `API returned non-JSON from ${url}. Restart the API server and check EXPO_PUBLIC_API_URL.`,
       );
     }
   }
@@ -119,7 +124,10 @@ export const api = {
   },
 
   getProductByBarcode(barcode: string, token?: string | null) {
-    return request<Product | null>(`/products/barcode/${encodeURIComponent(barcode)}`, { token });
+    return request<Product | null>(
+      `/products/barcode/${encodeURIComponent(barcode)}`,
+      { token },
+    );
   },
 
   receiveOneStock(barcode: string, token?: string | null) {

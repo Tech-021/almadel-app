@@ -1,4 +1,12 @@
-import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+    createContext,
+    PropsWithChildren,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 
 import { api, ApiUser } from "@/lib/api";
 import { loadAuthSession, saveAuthSession } from "@/lib/auth-session";
@@ -82,39 +90,45 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
-  const signIn = useCallback(async ({ email, password, role }: AuthCredentials) => {
-    setLoading(true);
+  const signIn = useCallback(
+    async ({ email, password, role }: AuthCredentials) => {
+      setLoading(true);
 
-    try {
-      const response = await api.signIn(email, password, role);
+      try {
+        const response = await api.signIn(email, password, role);
 
-      setToken(response.token);
-      setUser(response.user);
-      await saveAuthSession({
-        token: response.token,
-        user: response.user,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        setToken(response.token);
+        setUser(response.user);
+        await saveAuthSession({
+          token: response.token,
+          user: response.user,
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
-  const signUpStaff = useCallback(async ({ email, password, fullName }: SignUpCredentials) => {
-    setLoading(true);
+  const signUpStaff = useCallback(
+    async ({ email, password, fullName }: SignUpCredentials) => {
+      setLoading(true);
 
-    try {
-      const response = await api.signUpStaff(email, password, fullName);
+      try {
+        const response = await api.signUpStaff(email, password, fullName);
 
-      setToken(response.token);
-      setUser(response.user);
-      await saveAuthSession({
-        token: response.token,
-        user: response.user,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        setToken(response.token);
+        setUser(response.user);
+        await saveAuthSession({
+          token: response.token,
+          user: response.user,
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -128,7 +142,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       signUpStaff,
       signOut,
     }),
-    [initializing, loading, signIn, signOut, signUpStaff, token, user]
+    [initializing, loading, signIn, signOut, signUpStaff, token, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

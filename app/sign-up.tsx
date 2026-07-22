@@ -49,10 +49,19 @@ export default function SignUpScreen() {
     setError(null);
 
     try {
-      await signUpStaff({ email: normalizedEmail, password, fullName: normalizedName, role: "staff" });
+      await signUpStaff({
+        email: normalizedEmail,
+        password,
+        fullName: normalizedName,
+        role: "staff",
+      });
       router.replace("/home");
     } catch (authError) {
-      setError(authError instanceof Error ? authError.message : "Account creation failed.");
+      setError(
+        authError instanceof Error
+          ? authError.message
+          : "Account creation failed.",
+      );
     }
   };
 
@@ -93,8 +102,13 @@ export default function SignUpScreen() {
         onChangeText={setPassword}
         placeholder="Enter password"
         rightAction={
-          <Pressable onPress={() => setSecurePassword((value) => !value)} style={styles.iconButton}>
-            <Text style={styles.eyeLabel}>{securePassword ? "Show" : "Hide"}</Text>
+          <Pressable
+            onPress={() => setSecurePassword((value) => !value)}
+            style={styles.iconButton}
+          >
+            <Text style={styles.eyeLabel}>
+              {securePassword ? "Show" : "Hide"}
+            </Text>
           </Pressable>
         }
         secureTextEntry={securePassword}

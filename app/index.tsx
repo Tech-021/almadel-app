@@ -1,9 +1,15 @@
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { useEffect } from "react";
+import {
+    ActivityIndicator,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 
-import { AuthScreenShell } from "@/components/auth/auth-screen-shell";
 import { AuthButton } from "@/components/auth/auth-button";
+import { AuthScreenShell } from "@/components/auth/auth-screen-shell";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function AuthScreen() {
@@ -32,7 +38,10 @@ export default function AuthScreen() {
       <View style={styles.actions}>
         <AuthButton label="Sign In" onPress={() => router.push("/sign-in")} />
 
-        <Pressable style={styles.secondaryButton} onPress={() => router.push("/sign-up")}>
+        <Pressable
+          style={styles.secondaryButton}
+          onPress={() => router.push("/sign-up")}
+        >
           <Text style={styles.secondaryButtonText}>Create Account</Text>
         </Pressable>
       </View>

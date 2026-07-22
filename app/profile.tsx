@@ -13,25 +13,63 @@ export default function ProfileScreen() {
   const palette = InventoryTheme[colorScheme ?? "light"];
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: palette.background }]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={[styles.eyebrow, { color: palette.accent }]}>Profile</Text>
-        <Text style={[styles.title, { color: palette.text }]}>Your account</Text>
+        <Text style={[styles.title, { color: palette.text }]}>
+          Your account
+        </Text>
 
-        <View style={[styles.panel, { backgroundColor: palette.card, borderColor: palette.border }]}>
-          <InfoRow icon="person-outline" label="Name" value={user?.fullName ?? "Unknown"} />
-          <InfoRow icon="mail-outline" label="Email" value={user?.email ?? "Unknown"} />
-          <InfoRow icon="id-card-outline" label="Role" value={role ?? "staff"} />
+        <View
+          style={[
+            styles.panel,
+            { backgroundColor: palette.card, borderColor: palette.border },
+          ]}
+        >
+          <InfoRow
+            icon="person-outline"
+            label="Name"
+            value={user?.fullName ?? "Unknown"}
+          />
+          <InfoRow
+            icon="mail-outline"
+            label="Email"
+            value={user?.email ?? "Unknown"}
+          />
+          <InfoRow
+            icon="id-card-outline"
+            label="Role"
+            value={role ?? "staff"}
+          />
         </View>
 
-        <Pressable style={[styles.linkButton, { backgroundColor: palette.card, borderColor: palette.border }]} onPress={() => router.push("/settings")}>
+        <Pressable
+          style={[
+            styles.linkButton,
+            { backgroundColor: palette.card, borderColor: palette.border },
+          ]}
+          onPress={() => router.push("/settings")}
+        >
           <Ionicons name="settings-outline" size={18} color={palette.accent} />
-          <Text style={[styles.linkButtonText, { color: palette.text }]}>Open settings</Text>
+          <Text style={[styles.linkButtonText, { color: palette.text }]}>
+            Open settings
+          </Text>
         </Pressable>
 
-        <Pressable style={[styles.signOutButton, { backgroundColor: palette.danger }]} disabled={loading} onPress={signOut}>
+        <Pressable
+          style={[styles.signOutButton, { backgroundColor: palette.danger }]}
+          disabled={loading}
+          onPress={signOut}
+        >
           <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.signOutText}>{loading ? "Signing out..." : "Sign out"}</Text>
+          <Text style={styles.signOutText}>
+            {loading ? "Signing out..." : "Sign out"}
+          </Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -54,7 +92,9 @@ function InfoRow({ icon, label, value }: InfoRowProps) {
         <Ionicons name={icon} size={18} color={palette.accent} />
       </View>
       <View style={styles.infoTextBlock}>
-        <Text style={[styles.infoLabel, { color: palette.muted }]}>{label}</Text>
+        <Text style={[styles.infoLabel, { color: palette.muted }]}>
+          {label}
+        </Text>
         <Text style={[styles.infoValue, { color: palette.text }]}>{value}</Text>
       </View>
     </View>

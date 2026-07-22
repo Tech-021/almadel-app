@@ -1,6 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+    ActivityIndicator,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 
 import { InventoryTheme } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -11,7 +17,13 @@ type AuthButtonProps = ComponentProps<typeof Pressable> & {
   icon?: keyof typeof Ionicons.glyphMap;
 };
 
-export function AuthButton({ icon = "arrow-forward", label, loading = false, style, ...props }: AuthButtonProps) {
+export function AuthButton({
+  icon = "arrow-forward",
+  label,
+  loading = false,
+  style,
+  ...props
+}: AuthButtonProps) {
   const colorScheme = useColorScheme();
   const palette = InventoryTheme[colorScheme ?? "light"];
 
