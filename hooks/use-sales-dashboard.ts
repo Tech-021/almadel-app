@@ -17,6 +17,8 @@ export function useSalesDashboard() {
       const data = await api.getDashboard(token);
       setProducts(data.products);
       setSales(data.sales);
+    } catch (error) {
+      console.log("Fetch dashboard error:", error);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { api, ApiUser } from "@/lib/api";
+import { loadAuthSession, saveAuthSession } from "@/lib/auth-session";
 
 export type UserRole = "admin" | "staff";
 export type AuthMode = "signIn" | "signUp";
@@ -42,7 +43,31 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<ApiUser | null>(null);
 
   useEffect(() => {
-    setInitializing(false);
+    let active = true;
+
+    loadAuthSession()
+      .then((session) => {
+        if (!active || !session) {
+          return;
+        }
+
+        setToken(session.token);
+        setUser(session.user);
+      })
+      .catch((error) => {
+        if (__DEV__) {
+          console.log("Load auth session error:", error);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setInitializing(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const signOut = useCallback(async () => {
@@ -51,6 +76,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     try {
       setToken(null);
       setUser(null);
+      await saveAuthSession(null);
     } finally {
       setLoading(false);
     }
@@ -64,6 +90,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
       setToken(response.token);
       setUser(response.user);
+      await saveAuthSession({
+        token: response.token,
+        user: response.user,
+      });
     } finally {
       setLoading(false);
     }
@@ -77,6 +107,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
       setToken(response.token);
       setUser(response.user);
+      await saveAuthSession({
+        token: response.token,
+        user: response.user,
+      });
     } finally {
       setLoading(false);
     }
