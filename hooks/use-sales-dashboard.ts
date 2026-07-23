@@ -10,11 +10,11 @@ export function useSalesDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [sales, setSales] = useState<SaleRecord[]>([]);
 
-  const fetchDashboard = useCallback(async () => {
+  const fetchDashboard = useCallback(async (forceRefresh = false) => {
     setLoading(true);
 
     try {
-      const data = await api.getDashboard(token);
+      const data = await api.getDashboard(token, forceRefresh);
       setProducts(data.products);
       setSales(data.sales);
     } catch (error) {

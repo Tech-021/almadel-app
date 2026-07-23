@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AuthButton } from "@/components/auth/auth-button";
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthScreenShell } from "@/components/auth/auth-screen-shell";
+import { useToast } from "@/components/ui/toaster";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function SignUpScreen() {
@@ -14,7 +15,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [securePassword, setSecurePassword] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!initializing && session) {
@@ -27,26 +28,24 @@ export default function SignUpScreen() {
     const normalizedEmail = email.trim();
 
     if (!normalizedName) {
-      setError("Please enter your name.");
+      toast.error("Missing name", "Please enter your name.");
       return;
     }
 
     if (!normalizedEmail || !normalizedEmail.includes("@")) {
-      setError("Please enter a valid email address.");
+      toast.error("Invalid email", "Please enter a valid email address.");
       return;
     }
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+      toast.error("Password too short", "Use at least 8 characters.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      toast.error("Passwords do not match", "Please confirm the same password.");
       return;
     }
-
-    setError(null);
 
     try {
       await signUpStaff({
@@ -55,9 +54,11 @@ export default function SignUpScreen() {
         fullName: normalizedName,
         role: "staff",
       });
+      toast.success("Account created", "Your staff account is ready.");
       router.replace("/home");
     } catch (authError) {
-      setError(
+      toast.error(
+        "Account creation failed",
         authError instanceof Error
           ? authError.message
           : "Account creation failed.",
@@ -71,8 +72,6 @@ export default function SignUpScreen() {
       title="Join the workspace"
       subtitle="Create a staff account to start scanning products and updating stock."
     >
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-
       <AuthField
         autoCapitalize="words"
         autoComplete="name"
@@ -139,12 +138,6 @@ export default function SignUpScreen() {
 }
 
 const styles = StyleSheet.create({
-  error: {
-    color: "#B91C1C",
-    fontSize: 14,
-    fontWeight: "700",
-    marginBottom: 12,
-  },
   iconButton: {
     alignItems: "center",
     justifyContent: "center",

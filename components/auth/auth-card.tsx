@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import type { ComponentProps, ReactNode } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,6 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useToast } from "@/components/ui/toaster";
 import { InventoryTheme } from "@/constants/theme";
 import { AuthMode, UserRole, useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -36,6 +36,7 @@ export function AuthCard() {
   const { loading, signIn, signUpStaff } = useAuth();
   const colorScheme = useColorScheme();
   const palette = InventoryTheme[colorScheme ?? "light"];
+  const { toast } = useToast();
   const [role, setRole] = useState<UserRole>("staff");
   const [mode, setMode] = useState<AuthMode>("signIn");
   const [fullName, setFullName] = useState("");
@@ -61,26 +62,30 @@ export function AuthCard() {
 
   const submit = async () => {
     if (!email.trim() || !password) {
-      Alert.alert("Missing details", "Please enter your email and password.");
+      toast.error("Missing details", "Please enter your email and password.");
       return;
     }
 
     if (isSignUp && !fullName.trim()) {
-      Alert.alert("Missing name", "Please enter the staff member name.");
+      toast.error("Missing name", "Please enter the staff member name.");
       return;
     }
 
     try {
       if (isSignUp) {
         await signUpStaff({ email, password, fullName, role: "staff" });
-        Alert.alert("Account created", "Staff account is ready. You can sign in now.");
+        toast.success("Account created", "Staff account is ready. You can sign in now.");
         setMode("signIn");
         return;
       }
 
       await signIn({ email, password, role });
+      toast.success("Signed in", "Welcome back to Inventory Desk.");
     } catch (error) {
-      Alert.alert("Authentication failed", error instanceof Error ? error.message : "Please try again.");
+      toast.error(
+        "Authentication failed",
+        error instanceof Error ? error.message : "Please try again.",
+      );
     }
   };
 

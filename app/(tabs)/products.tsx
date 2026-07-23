@@ -2,6 +2,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { AdminScreenShell } from "@/components/admin/admin-screen-shell";
+import { useToast } from "@/components/ui/toaster";
 import { InventoryTheme } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useProducts } from "@/hooks/use-products";
@@ -11,6 +12,7 @@ export default function ProductsScreen() {
   const { deleteProduct, fetchProducts, loading, products } = useProducts();
   const colorScheme = useColorScheme();
   const palette = InventoryTheme[colorScheme ?? "light"];
+  const { toast } = useToast();
 
   const confirmDelete = (product: Product) => {
     Alert.alert(
@@ -27,8 +29,9 @@ export default function ProductsScreen() {
           onPress: async () => {
             try {
               await deleteProduct(product.id);
+              toast.success("Product deleted", `${product.name} was removed.`);
             } catch (error) {
-              Alert.alert(
+              toast.error(
                 "Could not delete product",
                 error instanceof Error ? error.message : "Please try again."
               );
@@ -42,7 +45,7 @@ export default function ProductsScreen() {
   return (
     <AdminScreenShell
       eyebrow="Admin"
-      onRefresh={fetchProducts}
+      onRefresh={() => fetchProducts(true)}
       refreshing={loading}
       subtitle="All available products, prices, barcodes, and current stock."
       title="Products"

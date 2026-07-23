@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AdminInput } from "@/components/admin/admin-input";
 import { AdminScreenShell } from "@/components/admin/admin-screen-shell";
 import { BarcodeScannerCard } from "@/components/admin/barcode-scanner-card";
+import { useToast } from "@/components/ui/toaster";
 import { InventoryTheme } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useProducts } from "@/hooks/use-products";
@@ -21,6 +22,7 @@ export default function StockScreen() {
   const [product, setProduct] = useState<Product | null>(null);
   const colorScheme = useColorScheme();
   const palette = InventoryTheme[colorScheme ?? "light"];
+  const { toast } = useToast();
 
   const updateDraft = (key: keyof StockAdjustmentDraft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -33,10 +35,13 @@ export default function StockScreen() {
       setProduct(foundProduct ?? null);
 
       if (!foundProduct) {
-        Alert.alert("Product not found", "Add this product first before adding stock.");
+        toast.warning("Product not found", "Add this product first before adding stock.");
       }
     } catch (error) {
-      Alert.alert("Lookup failed", error instanceof Error ? error.message : "Please try again.");
+      toast.error(
+        "Lookup failed",
+        error instanceof Error ? error.message : "Please try again.",
+      );
     }
   };
 
@@ -48,11 +53,14 @@ export default function StockScreen() {
   const submit = async () => {
     try {
       await addStock(draft);
-      Alert.alert("Stock updated", "The stock quantity has been added.");
+      toast.success("Stock updated", "The stock quantity has been added.");
       setDraft(emptyDraft);
       setProduct(null);
     } catch (error) {
-      Alert.alert("Could not update stock", error instanceof Error ? error.message : "Please try again.");
+      toast.error(
+        "Could not update stock",
+        error instanceof Error ? error.message : "Please try again.",
+      );
     }
   };
 

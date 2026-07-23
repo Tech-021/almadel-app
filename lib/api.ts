@@ -26,19 +26,40 @@ export type CheckoutItem = Product & {
 
 type ApiOptions = {
   body?: unknown;
+  cacheTtlMs?: number;
+  forceRefresh?: boolean;
   method?: "DELETE" | "GET" | "POST" | "PATCH";
   token?: string | null;
 };
 
 const API_URL = getApiBaseUrl();
+const apiCache = new Map<string, { expiresAt: number; payload: unknown }>();
+
+function cacheKey(path: string, token?: string | null) {
+  return `${token ?? "public"}:${path}`;
+}
+
+function clearApiCache() {
+  apiCache.clear();
+}
 
 async function request<T>(path: string, options: ApiOptions = {}) {
   const url = `${API_URL}${path}`;
+  const method = options.method ?? "GET";
+  const key = cacheKey(path, options.token);
+  const cached = apiCache.get(key);
+  const shouldUseCache =
+    method === "GET" && Boolean(options.cacheTtlMs) && !options.forceRefresh;
+
+  if (shouldUseCache && cached && cached.expiresAt > Date.now()) {
+    return cached.payload as T;
+  }
+
   let response: Response;
 
   try {
     response = await fetch(url, {
-      method: options.method ?? "GET",
+      method,
       headers: {
         "Content-Type": "application/json",
         ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
@@ -48,6 +69,10 @@ async function request<T>(path: string, options: ApiOptions = {}) {
   } catch (error) {
     if (__DEV__) {
       console.log("Request failed:", url, error);
+    }
+
+    if (cached) {
+      return cached.payload as T;
     }
 
     throw new Error(
@@ -77,50 +102,82 @@ async function request<T>(path: string, options: ApiOptions = {}) {
     throw new Error(message ?? `Request failed: ${response.status}`);
   }
 
+  if (method === "GET" && options.cacheTtlMs) {
+    apiCache.set(key, {
+      expiresAt: Date.now() + options.cacheTtlMs,
+      payload,
+    });
+  }
+
   return payload as T;
 }
 
 export const api = {
-  addProduct(draft: ProductDraft, token?: string | null) {
-    return request<Product>("/products", {
+  async addProduct(draft: ProductDraft, token?: string | null) {
+    const product = await request<Product>("/products", {
       body: draft,
       method: "POST",
       token,
     });
+
+    clearApiCache();
+    return product;
   },
 
-  addStock(draft: StockAdjustmentDraft, token?: string | null) {
-    return request<Product>("/stock/add", {
+  async addStock(draft: StockAdjustmentDraft, token?: string | null) {
+    const product = await request<Product>("/stock/add", {
       body: draft,
       method: "POST",
       token,
     });
+
+    clearApiCache();
+    return product;
   },
 
-  checkout(items: CheckoutItem[], token?: string | null) {
-    return request<{ saleId: number }>("/sales/checkout", {
-      body: { items },
+  async checkout(items: CheckoutItem[], token?: string | null) {
+    const sale = await request<{ saleId: number }>("/sales/checkout", {
+      body: {
+        items: items.map((item) => ({
+          barcode: item.barcode,
+          quantity: item.quantity,
+        })),
+      },
       method: "POST",
       token,
     });
+
+    clearApiCache();
+    return sale;
   },
 
-  getDashboard(token?: string | null) {
+  getDashboard(token?: string | null, forceRefresh = false) {
     return request<{
       products: Product[];
       sales: SaleRecord[];
-    }>("/dashboard", { token });
+    }>("/dashboard", {
+      cacheTtlMs: 20_000,
+      forceRefresh,
+      token,
+    });
   },
 
-  getProducts(token?: string | null) {
-    return request<Product[]>("/products", { token });
+  getProducts(token?: string | null, forceRefresh = false) {
+    return request<Product[]>("/products", {
+      cacheTtlMs: 45_000,
+      forceRefresh,
+      token,
+    });
   },
 
-  deleteProduct(productId: number, token?: string | null) {
-    return request<{ deleted: true }>(`/products/${productId}`, {
+  async deleteProduct(productId: number, token?: string | null) {
+    const result = await request<{ deleted: true }>(`/products/${productId}`, {
       method: "DELETE",
       token,
     });
+
+    clearApiCache();
+    return result;
   },
 
   getProductByBarcode(barcode: string, token?: string | null) {
@@ -130,12 +187,15 @@ export const api = {
     );
   },
 
-  receiveOneStock(barcode: string, token?: string | null) {
-    return request<Product>("/stock/receive-one", {
+  async receiveOneStock(barcode: string, token?: string | null) {
+    const product = await request<Product>("/stock/receive-one", {
       body: { barcode },
       method: "POST",
       token,
     });
+
+    clearApiCache();
+    return product;
   },
 
   signIn(email: string, password: string, role: "admin" | "staff") {

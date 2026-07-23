@@ -9,11 +9,11 @@ export function useProducts(autoLoad = true) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (forceRefresh = false) => {
     setLoading(true);
 
     try {
-      const data = await api.getProducts(token);
+      const data = await api.getProducts(token, forceRefresh);
       setProducts(data);
     } finally {
       setLoading(false);
@@ -26,9 +26,13 @@ export function useProducts(autoLoad = true) {
     }
   }, [autoLoad, fetchProducts]);
 
+  const productsByBarcode = useMemo(() => {
+    return new Map(products.map((product) => [product.barcode, product]));
+  }, [products]);
+
   const findByBarcode = useCallback(
-    (barcode: string) => products.find((product) => product.barcode === barcode.trim()),
-    [products]
+    (barcode: string) => productsByBarcode.get(barcode.trim()),
+    [productsByBarcode]
   );
 
   const findByBarcodeLive = useCallback(
@@ -41,7 +45,7 @@ export function useProducts(autoLoad = true) {
   const addProduct = useCallback(
     async (draft: ProductDraft) => {
       await api.addProduct(draft, token);
-      await fetchProducts();
+      await fetchProducts(true);
     },
     [fetchProducts, token]
   );
@@ -49,7 +53,7 @@ export function useProducts(autoLoad = true) {
   const addStock = useCallback(
     async (draft: StockAdjustmentDraft) => {
       await api.addStock(draft, token);
-      await fetchProducts();
+      await fetchProducts(true);
     },
     [fetchProducts, token]
   );
@@ -57,7 +61,7 @@ export function useProducts(autoLoad = true) {
   const deleteProduct = useCallback(
     async (productId: number) => {
       await api.deleteProduct(productId, token);
-      await fetchProducts();
+      await fetchProducts(true);
     },
     [fetchProducts, token]
   );

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
-  Animated,
   RefreshControl,
   View,
   Text,
@@ -20,6 +19,7 @@ import { useScanFeedback } from "@/hooks/use-scan-feedback";
 import { InventoryTheme } from "@/constants/theme";
 import { api } from "@/lib/api";
 import { WelcomeBackButton } from "@/components/navigation/welcome-back-button";
+import { useToast } from "@/components/ui/toaster";
 
 type Product = {
   id: number;
@@ -30,12 +30,6 @@ type Product = {
 };
 
 type Mode = "sale" | "receive";
-type ToastType = "success" | "error" | "info" | "warning";
-
-type ToastState = {
-  message: string;
-  type: ToastType;
-};
 
 const SCAN_COOLDOWN_MS = 1800;
 
@@ -67,12 +61,12 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
   const scanLockRef = useRef(false);
   const lastScanRef = useRef<{ barcode: string; time: number } | null>(null);
 
-  const [toast, setToast] = useState<ToastState | null>(null);
-  const toastOpacity = useRef(new Animated.Value(0)).current;
-  const toastTranslateY = useRef(new Animated.Value(-18)).current;
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { playScanFeedback } = useScanFeedback();
+  const { toast } = useToast();
   const scannerReady = Boolean(scannerOpen && canScan && !savingStock);
+  const productsByBarcode = useMemo(() => {
+    return new Map(products.map((product) => [product.barcode, product]));
+  }, [products]);
 
   useFocusEffect(
     useCallback(() => {
@@ -88,68 +82,20 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
   );
 
   const showToast = useCallback(
-    (toastMessage: string, type: ToastType = "info") => {
-      if (toastTimerRef.current) {
-        clearTimeout(toastTimerRef.current);
-      }
-
-      setToast({
-        message: toastMessage,
-        type,
-      });
-
-      toastOpacity.setValue(0);
-      toastTranslateY.setValue(-18);
-
-      Animated.parallel([
-        Animated.timing(toastOpacity, {
-          toValue: 1,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-        Animated.timing(toastTranslateY, {
-          toValue: 0,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      toastTimerRef.current = setTimeout(() => {
-        Animated.parallel([
-          Animated.timing(toastOpacity, {
-            toValue: 0,
-            duration: 220,
-            useNativeDriver: true,
-          }),
-          Animated.timing(toastTranslateY, {
-            toValue: -18,
-            duration: 220,
-            useNativeDriver: true,
-          }),
-        ]).start(({ finished }) => {
-          if (finished) {
-            setToast(null);
-          }
-        });
-      }, 2200);
+    (
+      toastMessage: string,
+      type: "error" | "info" | "success" | "warning" = "info",
+    ) => {
+      toast[type](toastMessage);
     },
-    [toastOpacity, toastTranslateY]
+    [toast],
   );
 
-
-  useEffect(() => {
-    return () => {
-      if (toastTimerRef.current) {
-        clearTimeout(toastTimerRef.current);
-      }
-    };
-  }, []);
-
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (forceRefresh = false) => {
     setLoadingProducts(true);
 
     try {
-      const data = await api.getProducts(token);
+      const data = await api.getProducts(token, forceRefresh);
       setProducts(data);
     } catch (error) {
       console.log("Fetch products error:", error);
@@ -167,7 +113,7 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
   const cartItems = useMemo(() => {
     return Object.entries(cart)
       .map(([barcode, quantity]) => {
-        const product = products.find((item) => item.barcode === barcode);
+        const product = productsByBarcode.get(barcode);
 
         if (!product) return null;
 
@@ -178,7 +124,7 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
         };
       })
       .filter(Boolean) as (Product & { quantity: number; total: number })[];
-  }, [cart, products]);
+  }, [cart, productsByBarcode]);
 
   const totalPrice = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.total, 0);
@@ -230,7 +176,7 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
     setCanScan(false);
     playScanFeedback();
 
-    const product = products.find((item) => item.barcode === barcode);
+    const product = productsByBarcode.get(barcode);
 
     try {
       if (!product) {
@@ -256,7 +202,7 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
         setMessage(text);
         showToast(text, "success");
 
-        await fetchProducts();
+        await fetchProducts(true);
         return;
       }
 
@@ -295,7 +241,7 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
       setMessage(text);
       showToast("Sale completed successfully.", "success");
 
-      await fetchProducts();
+      await fetchProducts(true);
     } finally {
       setSavingStock(false);
     }
@@ -347,13 +293,6 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
     ]);
   };
 
-  const getToastIcon = (type: ToastType) => {
-    if (type === "success") return "✓";
-    if (type === "error") return "!";
-    if (type === "warning") return "!";
-    return "i";
-  };
-
   const openScanner = async () => {
     if (!permission?.granted) {
       const result = await requestPermission();
@@ -387,29 +326,6 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
-      {toast && (
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.toast,
-            toast.type === "success" && styles.toastSuccess,
-            toast.type === "error" && styles.toastError,
-            toast.type === "warning" && styles.toastWarning,
-            toast.type === "info" && styles.toastInfo,
-            {
-              opacity: toastOpacity,
-              transform: [{ translateY: toastTranslateY }],
-            },
-          ]}
-        >
-          <View style={styles.toastIcon}>
-            <Text style={styles.toastIconText}>{getToastIcon(toast.type)}</Text>
-          </View>
-
-          <Text style={styles.toastText}>{toast.message}</Text>
-        </Animated.View>
-      )}
-
       <Modal
         animationType="slide"
         onRequestClose={closeScanner}
@@ -481,7 +397,10 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
         contentContainerStyle={styles.container}
         overScrollMode="never"
         refreshControl={
-          <RefreshControl refreshing={loadingProducts} onRefresh={fetchProducts} />
+          <RefreshControl
+            refreshing={loadingProducts}
+            onRefresh={() => fetchProducts(true)}
+          />
         }
       >
         <WelcomeBackButton />
@@ -1241,61 +1160,4 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  toast: {
-    position: "absolute",
-    top: 14,
-    left: 18,
-    right: 18,
-    zIndex: 999,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    borderWidth: 1,
-  },
-
-  toastSuccess: {
-    backgroundColor: "#ECFDF5",
-    borderColor: "#A7F3D0",
-  },
-
-  toastError: {
-    backgroundColor: "#FFF1F2",
-    borderColor: "#FECDD3",
-  },
-
-  toastWarning: {
-    backgroundColor: "#FFFBEB",
-    borderColor: "#FDE68A",
-  },
-
-  toastInfo: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
-  },
-
-  toastIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#0F172A",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  toastIconText: {
-    color: "#FFFFFF",
-    fontWeight: "900",
-    fontSize: 15,
-  },
-
-  toastText: {
-    flex: 1,
-    color: "#0F172A",
-    fontSize: 14,
-    fontWeight: "900",
-    lineHeight: 19,
-  },
 });

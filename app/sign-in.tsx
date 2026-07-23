@@ -1,11 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AuthButton } from "@/components/auth/auth-button";
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthScreenShell } from "@/components/auth/auth-screen-shell";
+import { useToast } from "@/components/ui/toaster";
 import { useAuth } from "@/hooks/use-auth";
 
 type Role = "staff" | "admin";
@@ -16,7 +17,7 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [securePassword, setSecurePassword] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!initializing && session) {
@@ -33,29 +34,22 @@ export default function SignInScreen() {
     const normalizedEmail = email.trim();
 
     if (!normalizedEmail || !password) {
-      setError("Please enter your email and password.");
+      toast.error("Missing details", "Please enter your email and password.");
       return;
     }
 
-    setError(null);
-
     try {
       await signIn({ email: normalizedEmail, password, role });
+      toast.success("Signed in", "Welcome back to Inventory Desk.");
       router.replace("/home");
     } catch (authError) {
-      setError(
+      toast.error(
+        "Authentication failed",
         authError instanceof Error
           ? authError.message
           : "Authentication failed.",
       );
     }
-  };
-
-  const handleForgotPassword = () => {
-    Alert.alert(
-      "Forgot password",
-      "Password reset is not wired in this frontend. Ask an administrator to help recover the account.",
-    );
   };
 
   return (
@@ -80,8 +74,6 @@ export default function SignInScreen() {
       </View>
 
       <Text style={styles.roleHint}>{roleLabel}</Text>
-
-      {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <AuthField
         autoCapitalize="none"
@@ -118,7 +110,7 @@ export default function SignInScreen() {
       />
 
       <Pressable
-        onPress={handleForgotPassword}
+        onPress={() => router.push("/forgot-password")}
         style={styles.forgotPasswordButton}
       >
         <Text style={styles.forgotPasswordText}>Forgot password?</Text>
@@ -190,12 +182,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     marginBottom: 8,
-  },
-  error: {
-    color: "#B91C1C",
-    fontSize: 14,
-    fontWeight: "700",
-    marginBottom: 12,
   },
   iconButton: {
     alignItems: "center",

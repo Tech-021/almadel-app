@@ -11,6 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 import "react-native-reanimated";
 
+import { ToastProvider } from "@/components/ui/toaster";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
@@ -21,7 +22,9 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootNavigator />
+      <ToastProvider>
+        <RootNavigator />
+      </ToastProvider>
     </AuthProvider>
   );
 }
@@ -67,6 +70,7 @@ function RootNavigator() {
       >
         <Stack.Protected guard={!session}>
           <Stack.Screen name="index" />
+          <Stack.Screen name="forgot-password" />
           <Stack.Screen name="sign-in" />
           <Stack.Screen name="sign-up" />
         </Stack.Protected>

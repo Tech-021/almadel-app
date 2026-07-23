@@ -18,7 +18,7 @@ export default function DashboardScreen() {
   return (
     <AdminScreenShell
       eyebrow="Admin"
-      onRefresh={fetchDashboard}
+      onRefresh={() => fetchDashboard(true)}
       refreshing={loading}
       subtitle="Sales, stock value, products, and low stock signals in one place."
       title="Dashboard"
