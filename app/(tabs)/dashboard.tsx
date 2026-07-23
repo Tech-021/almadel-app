@@ -73,7 +73,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 16,
     padding: 16,
-    elevation: 3,
   },
   panelTitle: {
     color: "#0F172A",

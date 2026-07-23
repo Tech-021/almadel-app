@@ -209,7 +209,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 16,
     padding: 16,
-    elevation: 5,
   },
   cardHeader: {
     alignItems: "center",

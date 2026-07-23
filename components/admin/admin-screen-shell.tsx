@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { WelcomeBackButton } from "@/components/navigation/welcome-back-button";
 import { InventoryTheme } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
@@ -40,16 +41,21 @@ export function AdminScreenShell({
         style={styles.keyboardView}
       >
         <ScrollView
+          alwaysBounceVertical={false}
           automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          bounces={false}
           contentContainerStyle={styles.container}
           contentInsetAdjustmentBehavior={Platform.OS === "ios" ? "always" : undefined}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
+          overScrollMode="never"
           refreshControl={
             onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> : undefined
           }
           showsVerticalScrollIndicator
         >
+          <WelcomeBackButton />
+
           <View style={styles.header}>
             <Text style={[styles.eyebrow, { color: palette.accent }]}>{eyebrow}</Text>
             <Text style={[styles.title, { color: palette.text }]}>{title}</Text>
@@ -73,9 +79,10 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 20,
-    paddingBottom: 96,
+    paddingBottom: 28,
   },
   header: {
+    marginTop: 18,
     marginBottom: 18,
   },
   eyebrow: {

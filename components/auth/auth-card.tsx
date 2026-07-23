@@ -91,11 +91,14 @@ export function AuthCard() {
         style={styles.keyboardView}
       >
         <ScrollView
+          alwaysBounceVertical={false}
           automaticallyAdjustKeyboardInsets
+          bounces={false}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.container}
           contentInsetAdjustmentBehavior="always"
+          overScrollMode="never"
           showsVerticalScrollIndicator
         >
           <View style={styles.brandBlock}>
@@ -237,7 +240,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "flex-start",
     padding: 22,
-    paddingBottom: 140,
+    paddingBottom: 32,
     paddingTop: 34,
   },
   brandBlock: {
@@ -271,7 +274,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     padding: 18,
-    elevation: 4,
   },
   panelHeader: {
     marginBottom: 16,

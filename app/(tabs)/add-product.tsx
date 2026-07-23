@@ -78,7 +78,7 @@ export default function AddProductScreen() {
       {formVisible && (
         <View style={[styles.formPanel, { backgroundColor: palette.card, borderColor: palette.border }]}>
           <View style={styles.formHeader}>
-            <View>
+            <View style={styles.formHeaderText}>
               <Text style={[styles.panelTitle, { color: palette.text }]}>Product details</Text>
               <Text style={[styles.panelSubtitle, { color: palette.muted }]}>Fill product details for barcode {draft.barcode}.</Text>
             </View>
@@ -109,7 +109,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     padding: 16,
-    elevation: 3,
   },
   panelTitle: {
     color: "#0F172A",
@@ -126,9 +125,14 @@ const styles = StyleSheet.create({
   formHeader: {
     alignItems: "flex-start",
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
     justifyContent: "space-between",
     marginBottom: 14,
+  },
+  formHeaderText: {
+    flex: 1,
+    minWidth: 0,
   },
   rescanButton: {
     alignItems: "center",
@@ -138,6 +142,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 38,
+    maxWidth: "100%",
     paddingHorizontal: 12,
   },
   rescanButtonText: {

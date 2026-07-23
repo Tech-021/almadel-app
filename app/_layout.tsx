@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import {
@@ -7,6 +8,7 @@ import {
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import "react-native-reanimated";
 
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
@@ -27,6 +29,11 @@ export default function RootLayout() {
 function RootNavigator() {
   const colorScheme = useColorScheme();
   const { initializing, session } = useAuth();
+  const backgroundColor = colorScheme === "dark" ? "#080D18" : "#F6F8FC";
+
+  useEffect(() => {
+    void SystemUI.setBackgroundColorAsync(backgroundColor);
+  }, [backgroundColor]);
 
   if (initializing) {
     return (
@@ -34,7 +41,7 @@ function RootNavigator() {
         <View
           style={[
             styles.loadingScreen,
-            { backgroundColor: colorScheme === "dark" ? "#080D18" : "#F6F8FC" },
+            { backgroundColor },
           ]}
         >
           <ActivityIndicator
@@ -49,7 +56,15 @@ function RootNavigator() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack
+        screenOptions={{
+          animation: "none",
+          contentStyle: {
+            backgroundColor,
+          },
+          headerShown: false,
+        }}
+      >
         <Stack.Protected guard={!session}>
           <Stack.Screen name="index" />
           <Stack.Screen name="sign-in" />
@@ -61,19 +76,18 @@ function RootNavigator() {
           <Stack.Screen name="sale" />
           <Stack.Screen name="profile" />
           <Stack.Screen name="settings" />
-          <Stack.Screen name="dashboard" />
-          <Stack.Screen name="products" />
-          <Stack.Screen name="receive" />
-          <Stack.Screen name="stock" />
-          <Stack.Screen name="add-product" />
-          <Stack.Screen name="explore" />
+          <Stack.Screen name="(tabs)" />
           <Stack.Screen
             name="modal"
             options={{ presentation: "modal", title: "Modal" }}
           />
         </Stack.Protected>
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar
+        animated={false}
+        backgroundColor={backgroundColor}
+        style={colorScheme === "dark" ? "light" : "dark"}
+      />
     </ThemeProvider>
   );
 }

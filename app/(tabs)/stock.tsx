@@ -100,7 +100,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     padding: 16,
-    elevation: 3,
   },
   productPanel: {
     backgroundColor: "#ECFDF5",

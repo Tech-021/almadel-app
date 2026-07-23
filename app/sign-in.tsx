@@ -127,7 +127,7 @@ export default function SignInScreen() {
       <AuthButton label="Login" loading={loading} onPress={submit} />
 
       <View style={styles.footerRow}>
-        <Text style={styles.footerText}>Don't have an account?</Text>
+        <Text style={styles.footerText}>Don&apos;t have an account?</Text>
         <Pressable onPress={() => router.push("/sign-up")}>
           <Text style={styles.footerLink}>Create Account</Text>
         </Pressable>

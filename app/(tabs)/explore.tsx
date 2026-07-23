@@ -2,6 +2,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { WelcomeBackButton } from "@/components/navigation/welcome-back-button";
 import { InventoryTheme } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -28,6 +29,8 @@ export default function AccountScreen() {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
       <View style={styles.container}>
+        <WelcomeBackButton />
+
         <View style={styles.header}>
           <View style={[styles.avatar, { backgroundColor: palette.accent }]}>
             <Ionicons name={role === "admin" ? "shield-checkmark" : "person"} size={30} color="#FFFFFF" />
@@ -86,6 +89,7 @@ const styles = StyleSheet.create({
     padding: 22,
   },
   header: {
+    marginTop: 18,
     marginBottom: 22,
   },
   avatar: {

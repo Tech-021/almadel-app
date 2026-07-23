@@ -19,6 +19,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useScanFeedback } from "@/hooks/use-scan-feedback";
 import { InventoryTheme } from "@/constants/theme";
 import { api } from "@/lib/api";
+import { WelcomeBackButton } from "@/components/navigation/welcome-back-button";
 
 type Product = {
   id: number;
@@ -475,11 +476,16 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
       </Modal>
 
       <ScrollView
+        alwaysBounceVertical={false}
+        bounces={false}
         contentContainerStyle={styles.container}
+        overScrollMode="never"
         refreshControl={
           <RefreshControl refreshing={loadingProducts} onRefresh={fetchProducts} />
         }
       >
+        <WelcomeBackButton />
+
         <Text style={[styles.pageTitle, { color: palette.text }]}>
           {mode === "sale" ? "Sale Mode" : "Receive Stock"}
         </Text>
@@ -491,22 +497,22 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
         </Text>
 
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Products</Text>
-            <Text style={styles.statValue}>{products.length}</Text>
+          <View style={[styles.statCard, { backgroundColor: palette.card, borderColor: palette.border }]}>
+            <Text style={[styles.statLabel, { color: palette.muted }]}>Products</Text>
+            <Text style={[styles.statValue, { color: palette.text }]}>{products.length}</Text>
           </View>
 
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>
+          <View style={[styles.statCard, { backgroundColor: palette.card, borderColor: palette.border }]}>
+            <Text style={[styles.statLabel, { color: palette.muted }]}>
               {mode === "sale" ? "Cart Items" : "Total Stock"}
             </Text>
-            <Text style={styles.statValue}>
+            <Text style={[styles.statValue, { color: palette.text }]}>
               {mode === "sale" ? totalCartQuantity : totalStockQuantity}
             </Text>
           </View>
 
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>
+          <View style={[styles.statCard, { backgroundColor: palette.card, borderColor: palette.border }]}>
+            <Text style={[styles.statLabel, { color: palette.muted }]}>
               {mode === "sale" ? "Total" : "Low Stock"}
             </Text>
             <Text style={styles.statValueSmall}>
@@ -515,34 +521,34 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
           </View>
         </View>
 
-        <View style={styles.scannerLaunchCard}>
-          <View style={styles.scannerLaunchIcon}>
-            <Ionicons name="scan" size={24} color="#2563EB" />
+        <View style={[styles.scannerLaunchCard, { backgroundColor: palette.card, borderColor: palette.border }]}>
+          <View style={[styles.scannerLaunchIcon, { backgroundColor: palette.accentSoft }]}>
+            <Ionicons name="scan" size={24} color={palette.accent} />
           </View>
 
           <View style={styles.scannerLaunchContent}>
-            <Text style={styles.scannerLaunchTitle}>
+            <Text style={[styles.scannerLaunchTitle, { color: palette.text }]}>
               {mode === "sale" ? "Ready for sale scan" : "Ready for stock scan"}
             </Text>
-            <Text style={styles.scannerLaunchText}>
+            <Text style={[styles.scannerLaunchText, { color: palette.muted }]}>
               Open the scanner when you are ready to scan a product barcode.
             </Text>
           </View>
 
-          <Pressable style={styles.openScannerButton} onPress={openScanner}>
+          <Pressable style={[styles.openScannerButton, { backgroundColor: palette.accent }]} onPress={openScanner}>
             <Text style={styles.openScannerButtonText}>
               {permission.granted ? "Open Scanner" : "Allow Camera"}
             </Text>
           </Pressable>
         </View>
 
-        <View style={styles.messageBox}>
-          <Text style={styles.messageText}>{message}</Text>
+        <View style={[styles.messageBox, { backgroundColor: palette.card, borderColor: palette.border }]}>
+          <Text style={[styles.messageText, { color: palette.text }]}>{message}</Text>
         </View>
 
         {mode === "sale" && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cart</Text>
+        <View style={[styles.section, { backgroundColor: palette.card, borderColor: palette.border }]}>
+          <Text style={[styles.sectionTitle, { color: palette.text }]}>Cart</Text>
 
           {cartItems.length === 0 ? (
             <Text style={styles.emptyText}>No items in cart.</Text>
@@ -550,19 +556,19 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
             cartItems.map((item) => (
               <View key={item.barcode} style={styles.cartRow}>
                 <View style={styles.itemContent}>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemMeta}>
-                    Rs {item.price} × {item.quantity}
+                  <Text style={[styles.itemName, { color: palette.text }]}>{item.name}</Text>
+                  <Text style={[styles.itemMeta, { color: palette.muted }]}>
+                    Rs {item.price} x {item.quantity}
                   </Text>
                 </View>
 
-                <Text style={styles.itemTotal}>Rs {item.total}</Text>
+                <Text style={[styles.itemTotal, { color: palette.text }]}>Rs {item.total}</Text>
               </View>
             ))
           )}
 
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={[styles.totalLabel, { color: palette.text }]}>Total</Text>
             <Text style={styles.totalValue}>Rs {totalPrice}</Text>
           </View>
 
@@ -591,8 +597,8 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
         </View>
         )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Inventory</Text>
+        <View style={[styles.section, { backgroundColor: palette.card, borderColor: palette.border }]}>
+          <Text style={[styles.sectionTitle, { color: palette.text }]}>Inventory</Text>
 
           {loadingProducts ? (
             <Text style={styles.emptyText}>Loading products...</Text>
@@ -602,9 +608,9 @@ export function StaffInventoryScreen({ fixedMode }: StaffInventoryScreenProps) {
             products.map((product) => (
               <View key={product.barcode} style={styles.inventoryRow}>
                 <View style={styles.itemContent}>
-                  <Text style={styles.itemName}>{product.name}</Text>
-                  <Text style={styles.itemMeta}>Barcode: {product.barcode}</Text>
-                  <Text style={styles.itemMeta}>Price: Rs {product.price}</Text>
+                  <Text style={[styles.itemName, { color: palette.text }]}>{product.name}</Text>
+                  <Text style={[styles.itemMeta, { color: palette.muted }]}>Barcode: {product.barcode}</Text>
+                  <Text style={[styles.itemMeta, { color: palette.muted }]}>Price: Rs {product.price}</Text>
                 </View>
 
                 <View style={styles.stockBadge}>
@@ -652,7 +658,7 @@ const styles = StyleSheet.create({
     color: "#0F172A",
     marginBottom: 12,
     textAlign: "center",
-    letterSpacing: -0.5,
+    letterSpacing: 0,
   },
 
   permissionText: {
@@ -666,15 +672,16 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 18,
     paddingTop: 18,
-    paddingBottom: 44,
+    paddingBottom: 24,
   },
 
   pageTitle: {
     fontSize: 30,
     fontWeight: "900",
     color: "#0F172A",
+    marginTop: 18,
     marginBottom: 6,
-    letterSpacing: -0.8,
+    letterSpacing: 0,
   },
 
   pageSubtitle: {
@@ -694,7 +701,7 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    borderRadius: 18,
+    borderRadius: 8,
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderWidth: 1,
@@ -742,7 +749,6 @@ const styles = StyleSheet.create({
 
   activeMode: {
     backgroundColor: "#0F172A",
-    elevation: 4,
   },
 
   modeButtonText: {
@@ -762,26 +768,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#020617",
     marginBottom: 16,
     position: "relative",
-    elevation: 8,
   },
 
   scannerLaunchCard: {
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     borderColor: "#E2E8F0",
-    borderRadius: 18,
+    borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
     gap: 12,
     marginBottom: 16,
     padding: 16,
-    elevation: 3,
   },
 
   scannerLaunchIcon: {
     alignItems: "center",
     backgroundColor: "#ECFDF5",
-    borderRadius: 12,
+    borderRadius: 8,
     height: 46,
     justifyContent: "center",
     width: 46,
@@ -814,7 +818,7 @@ const styles = StyleSheet.create({
   openScannerButton: {
     alignItems: "center",
     backgroundColor: "#0F766E",
-    borderRadius: 12,
+    borderRadius: 8,
     justifyContent: "center",
     minHeight: 44,
     paddingHorizontal: 14,
@@ -1016,7 +1020,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#22C55E",
     marginHorizontal: 20,
     borderRadius: 99,
-    elevation: 4,
   },
 
   scanStatusPill: {
@@ -1054,13 +1057,12 @@ const styles = StyleSheet.create({
 
   messageBox: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 18,
+    borderRadius: 8,
     paddingVertical: 15,
     paddingHorizontal: 16,
     marginBottom: 18,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    elevation: 3,
   },
 
   messageText: {
@@ -1072,12 +1074,11 @@ const styles = StyleSheet.create({
 
   section: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 26,
+    borderRadius: 8,
     padding: 18,
     marginBottom: 18,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    elevation: 4,
   },
 
   sectionTitle: {
@@ -1085,7 +1086,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: "#0F172A",
     marginBottom: 14,
-    letterSpacing: -0.4,
+    letterSpacing: 0,
   },
 
   emptyText: {
@@ -1124,7 +1125,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: "#0F172A",
     marginBottom: 5,
-    letterSpacing: -0.2,
+    letterSpacing: 0,
   },
 
   itemMeta: {
@@ -1160,7 +1161,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "900",
     color: "#059669",
-    letterSpacing: -0.5,
+    letterSpacing: 0,
   },
 
   actionRow: {
@@ -1173,10 +1174,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#059669",
     paddingVertical: 15,
-    borderRadius: 16,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 5,
   },
 
   checkoutButtonText: {
@@ -1214,7 +1214,7 @@ const styles = StyleSheet.create({
   stockBadge: {
     minWidth: 52,
     height: 52,
-    borderRadius: 26,
+    borderRadius: 8,
     backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",
@@ -1232,8 +1232,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0F172A",
     paddingVertical: 16,
     paddingHorizontal: 30,
-    borderRadius: 16,
-    elevation: 5,
+    borderRadius: 8,
   },
 
   primaryButtonText: {
@@ -1248,7 +1247,6 @@ const styles = StyleSheet.create({
     left: 18,
     right: 18,
     zIndex: 999,
-    elevation: 999,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,

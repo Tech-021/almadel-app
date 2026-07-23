@@ -30,11 +30,16 @@ export function AuthButton({
   return (
     <Pressable
       accessibilityRole="button"
-      style={({ pressed }) => [
-        styles.button,
-        { backgroundColor: palette.accent, opacity: pressed ? 0.92 : 1 },
-        style,
-      ]}
+      style={(state) => {
+        const resolvedStyle =
+          typeof style === "function" ? style(state) : style;
+
+        return [
+          styles.button,
+          { backgroundColor: palette.accent, opacity: state.pressed ? 0.92 : 1 },
+          resolvedStyle,
+        ];
+      }}
       {...props}
     >
       {loading ? (

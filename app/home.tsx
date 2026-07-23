@@ -62,7 +62,10 @@ export default function HomeScreen() {
       style={[styles.safeArea, { backgroundColor: palette.background }]}
     >
       <ScrollView
+        alwaysBounceVertical={false}
+        bounces={false}
         contentContainerStyle={styles.container}
+        overScrollMode="never"
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
@@ -184,7 +187,7 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 22,
-    paddingBottom: 36,
+    paddingBottom: 24,
   },
   header: {
     marginBottom: 20,

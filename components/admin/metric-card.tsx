@@ -44,7 +44,6 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 145,
     padding: 16,
-    elevation: 3,
   },
   iconBox: {
     alignItems: "center",

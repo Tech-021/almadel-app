@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { WelcomeBackButton } from "@/components/navigation/welcome-back-button";
 import { InventoryTheme } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -17,9 +18,14 @@ export default function SettingsScreen() {
       style={[styles.safeArea, { backgroundColor: palette.background }]}
     >
       <ScrollView
+        alwaysBounceVertical={false}
+        bounces={false}
         contentContainerStyle={styles.container}
+        overScrollMode="never"
         showsVerticalScrollIndicator={false}
       >
+        <WelcomeBackButton />
+
         <Text style={[styles.eyebrow, { color: palette.accent }]}>
           Settings
         </Text>
@@ -99,12 +105,13 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 22,
-    paddingBottom: 36,
+    paddingBottom: 24,
   },
   eyebrow: {
     fontSize: 12,
     fontWeight: "900",
     letterSpacing: 0.8,
+    marginTop: 18,
     marginBottom: 8,
     textTransform: "uppercase",
   },

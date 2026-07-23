@@ -3,12 +3,12 @@ import type { ReactNode } from "react";
 import {
     KeyboardAvoidingView,
     Platform,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { InventoryTheme } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -47,10 +47,13 @@ export function AuthScreenShell({
         style={styles.keyboardView}
       >
         <ScrollView
+          alwaysBounceVertical={false}
           automaticallyAdjustKeyboardInsets
+          bounces={false}
           contentContainerStyle={styles.container}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
+          overScrollMode="never"
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.hero}>
