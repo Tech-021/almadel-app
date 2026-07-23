@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { WelcomeBackButton } from "@/components/navigation/welcome-back-button";
+import { useToast } from "@/components/ui/toaster";
 import { InventoryTheme } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -11,6 +12,7 @@ export default function AccountScreen() {
   const { loading, role, signOut, user } = useAuth();
   const colorScheme = useColorScheme();
   const palette = InventoryTheme[colorScheme ?? "light"];
+  const { toast } = useToast();
 
   const handleSignOut = () => {
     Alert.alert("Sign out", "Do you want to leave this session?", [
@@ -21,7 +23,10 @@ export default function AccountScreen() {
       {
         text: "Sign out",
         style: "destructive",
-        onPress: signOut,
+        onPress: async () => {
+          await signOut();
+          toast.success("Signed out", "You have left this session.");
+        },
       },
     ]);
   };

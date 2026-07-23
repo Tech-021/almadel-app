@@ -194,11 +194,11 @@ export function ToastProvider({ children }: PropsWithChildren) {
             </View>
 
             <View style={styles.content}>
-              <Text style={[styles.title, { color: palette.text }]}>
+              <Text style={styles.title}>
                 {currentToast.title}
               </Text>
               {currentToast.description ? (
-                <Text style={[styles.description, { color: palette.muted }]}>
+                <Text style={styles.description}>
                   {currentToast.description}
                 </Text>
               ) : null}
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   toast: {
-    alignItems: "center",
+    alignItems: "flex-start",
     borderRadius: 8,
     borderWidth: 2,
     elevation: 16,
@@ -258,17 +258,22 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     marginLeft: 4,
+    marginTop: 2,
     width: 40,
   },
   content: {
     flex: 1,
+    justifyContent: "center",
+    minHeight: 40,
   },
   title: {
+    color: "#020617",
     fontSize: 16,
     fontWeight: "900",
     lineHeight: 21,
   },
   description: {
+    color: "#1E293B",
     fontSize: 14,
     fontWeight: "800",
     lineHeight: 20,
